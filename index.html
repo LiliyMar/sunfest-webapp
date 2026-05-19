@@ -592,12 +592,12 @@ const hist = [];
 function afterStep(from) {
   switch(from) {
     case 'oferta':  return 'role';
-    case 'role':    return (S.role==='volunteer' || S.role==='artist') ? 'acc' : 'ticket';
+    case 'role':    return S.role==='volunteer' ? 'acc' : (S.role==='artist' ? 'days' : 'ticket');
     case 'ticket':  return S.ticketType==='vip' ? 'acc' : 'days';
     case 'days':    return 'acc';
     case 'acc':
       if (S.role==='volunteer') return 'voldates';
-      if (S.role==='artist')    return S.accommodation!=='none' ? 'nights' : 'name';
+      if (S.role==='artist')    return S.accommodation==='none' ? 'name' : 'nights';
       return S.accommodation!=='none' ? 'nights' : 'food';
     case 'nights':  return S.role==='artist' ? 'name' : 'food';
     case 'voldates':return 'food';
@@ -627,6 +627,7 @@ function next() {
   const n = afterStep(cur);
   if (!n) return;
   hist.push(cur);
+  if (n==='food' && S.role==='artist') { hist.push(cur); show('name'); return; }
   if (n==='food')    buildFood();
   if (n==='summary') buildSummary();
   if (n==='days')    updateDayPriceVisibility();
