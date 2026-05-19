@@ -208,7 +208,7 @@
     Нажимая «Принимаю», вы доверяете нам свои имя, телефон и Telegram — только чтобы всё организовалось.<br><br>
     <b>С деньгами так:</b><br>
     — 14+ дней до старта — вернём всё<br>
-    — 5–13 дней — половину от билета<br>
+    — 5–13 дней — половину от оргвзноса<br>
     — Меньше 5 дней — уже не получится<br><br>
     Полная оферта: <a href="https://sunfest.by" target="_blank" style="color:var(--gold)">sunfest.by</a>
   </div>
@@ -248,7 +248,7 @@
 
 <!-- 2. ТИП БИЛЕТА -->
 <div class="step" id="step-ticket">
-  <div class="step-title">Выберите билет</div>
+  <div class="step-title">Выберите оргвзнос</div>
   <div class="step-desc">Для участников фестиваля</div>
   <div class="vip-wrap">
     <div class="vip-badge">★ VIP</div>
@@ -801,7 +801,7 @@ function buildSummary() {
     rows.push(['Участие', '✅ Бесплатно']);
     rows.push(['Питание', '✅ Включено']);
   } else if (S.ticketType==='vip') {
-    rows.push(['Билет', '⭐ VIP — 430 BYN']);
+    rows.push(['Оргвзнос', '⭐ VIP — 430 BYN']);
     rows.push(['Проживание', ACC_L[S.accommodation]||'']);
   } else {
     rows.push(['Дни', S.days.length ? S.days.join(', ') : '—']);
