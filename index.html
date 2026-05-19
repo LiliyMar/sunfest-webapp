@@ -194,8 +194,32 @@
   <div class="progress-bar"><div class="progress-fill" id="pFill" style="width:0%"></div></div>
 </div>
 
+<!-- 0. ОФЕРТА -->
+<div class="step active" id="step-oferta">
+  <div class="step-title">Добро пожаловать 🌞</div>
+  <div class="step-desc">Перед регистрацией — пара слов о наших правилах</div>
+  <div style="background:white;border-radius:var(--radius);padding:16px;border:1px solid var(--border);font-size:14px;line-height:1.7;color:var(--text);margin-bottom:20px;">
+    <b>Как попасть на «Солнечный круг» и ничего не испортить</b><br><br>
+    Друзья, давайте беречь друг друга и это место. У нас просто так:<br>
+    — Без сигарет, алкоголя и всего запрещённого<br>
+    — С уважением к людям и тому, что нас окружает<br>
+    — Мирно, даже если захотелось поспорить<br><br>
+    ❤️ Если нарушим — попросим уйти, и деньги не вернём.<br><br>
+    Нажимая «Принимаю», вы доверяете нам свои имя, телефон и Telegram — только чтобы всё организовалось.<br><br>
+    <b>С деньгами так:</b><br>
+    — 14+ дней до старта — вернём всё<br>
+    — 5–13 дней — половину от билета<br>
+    — Меньше 5 дней — уже не получится<br><br>
+    Полная оферта: <a href="https://sunfest.by" target="_blank" style="color:var(--gold)">sunfest.by</a>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:10px;">
+    <button class="btn btn-next" style="flex:unset;width:100%" onclick="acceptOferta()">✅ Принимаю условия</button>
+    <button class="btn btn-back" style="width:100%" onclick="declineOferta()">❌ Не принимаю</button>
+  </div>
+</div>
+
 <!-- 1. РОЛЬ -->
-<div class="step active" id="step-role">
+<div class="step" id="step-role">
   <div class="step-title">Кто вы на фестивале?</div>
   <div class="step-desc">Выберите формат участия</div>
   <div class="option-list">
@@ -567,6 +591,7 @@ const hist = [];
 
 function afterStep(from) {
   switch(from) {
+    case 'oferta':  return 'role';
     case 'role':    return S.role==='volunteer' ? 'acc' : 'ticket';
     case 'ticket':  return S.ticketType==='vip' ? 'acc' : 'days';
     case 'days':    return 'acc';
@@ -590,7 +615,7 @@ function show(id) {
   document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
   document.getElementById('step-'+id).classList.add('active');
   cur = id;
-  const all=['role','ticket','days','acc','nights','voldates','food','name','phone','children','transport','transfer-times','source','summary'];
+  const all=['oferta','role','ticket','days','acc','nights','voldates','food','name','phone','children','transport','transfer-times','source','summary'];
   const i = all.indexOf(id);
   document.getElementById('pFill').style.width = i<0?'100%': Math.round(i/(all.length-1)*100)+'%';
   window.scrollTo(0,0);
@@ -823,8 +848,18 @@ function submit(action) {
   }
 }
 
+// ── Oferta ───────────────────────────────────────────────────────
+function acceptOferta() {
+  hist.push('oferta');
+  show('role');
+}
+function declineOferta() {
+  if (tg) tg.close();
+  else show('oferta');
+}
+
 // ── Start ─────────────────────────────────────────────────────────
-show('role');
+show('oferta');
 </script>
 </body>
 </html>
