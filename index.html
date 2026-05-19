@@ -597,9 +597,8 @@ function afterStep(from) {
     case 'days':    return 'acc';
     case 'acc':
       if (S.role==='volunteer') return 'voldates';
-      if (S.role==='artist')    return S.accommodation==='none' ? 'name' : 'nights';
       return S.accommodation!=='none' ? 'nights' : 'food';
-    case 'nights':  return S.role==='artist' ? 'name' : 'food';
+    case 'nights':  return 'food';
     case 'voldates':return 'food';
     case 'food':    return 'name';
     case 'name':    return 'phone';
@@ -627,7 +626,6 @@ function next() {
   const n = afterStep(cur);
   if (!n) return;
   hist.push(cur);
-  if (n==='food' && S.role==='artist') { hist.push(cur); show('name'); return; }
   if (n==='food')    buildFood();
   if (n==='summary') buildSummary();
   if (n==='days')    updateDayPriceVisibility();
@@ -870,12 +868,11 @@ function buildSummary() {
 
 function submit(action) {
   const data = JSON.stringify({...S, action, total: calcTotal()});
-  if (tg && tg.sendData) {
-    tg.sendData(data);
-  } else {
-    hist.push(cur);
-    show('done');
-  }
+  hist.push(cur);
+  show('done');
+  setTimeout(() => {
+    if (tg) { try { tg.sendData(data); } catch(e) {} }
+  }, 400);
 }
 
 // ── Oferta ───────────────────────────────────────────────────────
