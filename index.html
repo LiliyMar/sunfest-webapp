@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Солнечный круг — Регистрация</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --gold:    #c8922a;
+      --gold-lt: #e8c870;
+      --forest:  #1e3320;
+      --cream:   #fdf6ec;
+      --text:    #2a1f10;
+      --muted:   #7a6a55;
+      --border:  #e0cfa8;
+      --sel-bg:  #fff8e8;
+      --radius:  12px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      font-family: -apple-system, 'Segoe UI', Helvetica, sans-serif;
+      background: var(--cream);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 90px;
+    }
+
+    /* ── Header ── */
+    .header {
+      background: var(--forest);
+      color: var(--gold-lt);
+      text-align: center;
+      padding: 18px 16px 0;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    .header h1 { font-size: 17px; font-weight: 700; letter-spacing: 1px; }
+    .header .sub { font-size: 11px; color: #a0b89a; margin-top: 3px; padding-bottom: 12px; }
+    .progress-bar { height: 3px; background: rgba(255,255,255,0.15); }
+    .progress-fill { height: 100%; background: var(--gold); transition: width 0.3s; }
+
+    /* ── Step ── */
+    .step { display: none; padding: 20px 16px; animation: fadeIn 0.2s ease; }
+    .step.active { display: block; }
+    @keyframes fadeIn {
+      from { opacity:0; transform:translateY(6px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    .step-title { font-size: 21px; font-weight: 700; color: var(--forest); margin-bottom: 5px; }
+    .step-desc  { font-size: 14px; color: var(--muted); margin-bottom: 20px; line-height: 1.5; }
+
+    /* ── Option card ── */
+    .option-list { display:flex; flex-direction:column; gap:10px; }
+    .option-card {
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      cursor: pointer;
+      background: white;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: border-color 0.15s, background 0.15s;
+      user-select: none;
+    }
+    .option-card.selected { border-color: var(--gold); background: var(--sel-bg); }
+    .option-card:active   { transform: scale(0.98); }
+    .opt-icon  { font-size: 22px; flex-shrink:0; }
+    .opt-body  { flex:1; }
+    .opt-title { font-size: 15px; font-weight: 600; }
+    .opt-sub   { font-size: 13px; color: var(--muted); margin-top:2px; }
+    .opt-check {
+      width:22px; height:22px; border-radius:50%;
+      border:2px solid var(--border);
+      display:flex; align-items:center; justify-content:center;
+      flex-shrink:0; font-size:13px; color:transparent;
+      transition: all 0.15s;
+    }
+    .option-card.selected .opt-check { background:var(--gold); border-color:var(--gold); color:white; }
+
+    /* ── VIP card ── */
+    .vip-wrap { position:relative; margin-bottom:4px; }
+    .vip-card {
+      border:2px solid var(--gold);
+      border-radius: var(--radius);
+      padding: 20px 16px;
+      cursor:pointer;
+      background: linear-gradient(135deg,#fffbf0,#fff8e1);
+      transition: box-shadow 0.15s;
+    }
+    .vip-card.selected { box-shadow: 0 0 0 3px var(--gold); }
+    .vip-badge {
+      position:absolute; top:-1px; right:14px;
+      background:var(--gold); color:white;
+      font-size:11px; font-weight:700;
+      padding:3px 10px; border-radius:0 0 8px 8px;
+      letter-spacing:1px;
+    }
+    .vip-title { font-size:17px; font-weight:700; }
+    .vip-price { font-size:26px; font-weight:800; color:var(--gold); margin:4px 0 12px; }
+    .vip-features { list-style:none; display:flex; flex-direction:column; gap:6px; }
+    .vip-features li { font-size:14px; display:flex; align-items:center; gap:8px; }
+    .vip-features li::before { content:"✓"; color:var(--gold); font-weight:700; }
+
+    /* ── Input ── */
+    .inp-group  { margin-bottom:16px; }
+    .inp-label  { display:block; font-size:14px; font-weight:600; color:var(--muted); margin-bottom:8px; }
+    .inp-field  {
+      width:100%; padding:14px 16px;
+      border:2px solid var(--border); border-radius:var(--radius);
+      font-size:16px; color:var(--text); background:white;
+      outline:none; transition:border-color 0.15s;
+    }
+    .inp-field:focus { border-color:var(--gold); }
+    .inp-hint  { font-size:12px; color:var(--muted); margin-top:6px; line-height:1.5; }
+    .inp-error { font-size:12px; color:#c0392b; margin-top:6px; display:none; }
+
+    /* ── Nav buttons ── */
+    .nav { display:flex; gap:10px; margin-top:24px; }
+    .btn {
+      flex:1; padding:14px; border-radius:var(--radius);
+      font-size:15px; font-weight:600; cursor:pointer;
+      border:none; transition:transform 0.1s, opacity 0.1s;
+    }
+    .btn:active { transform:scale(0.97); }
+    .btn-back  { background:white; color:var(--muted); border:2px solid var(--border); }
+    .btn-next  { background:var(--forest); color:var(--gold-lt); flex:2; }
+    .btn-next:disabled { background:#ccc; color:white; }
+
+    /* ── Selection total ── */
+    .sel-total {
+      background:var(--forest); color:var(--gold-lt);
+      border-radius:var(--radius); padding:12px 16px;
+      display:flex; justify-content:space-between; align-items:center;
+      margin-top:12px; font-size:14px; font-weight:600;
+    }
+
+    /* ── Volunteer badge ── */
+    .vol-badge {
+      background:#e8f5e9; border:1px solid #81c784;
+      border-radius:8px; padding:12px 16px;
+      font-size:14px; color:#2e7d32; margin-bottom:16px;
+    }
+
+    /* ── Summary ── */
+    .sum-card {
+      background:white; border-radius:var(--radius);
+      padding:16px; margin-bottom:12px;
+      border:1px solid var(--border);
+    }
+    .sum-row {
+      display:flex; justify-content:space-between; align-items:flex-start;
+      padding:8px 0; border-bottom:1px solid #f0ebe0;
+    }
+    .sum-row:last-child { border-bottom:none; }
+    .sum-lbl { font-size:13px; color:var(--muted); flex-shrink:0; margin-right:12px; }
+    .sum-val { font-size:14px; font-weight:600; text-align:right; }
+
+    .total-row {
+      background:var(--sel-bg); border:2px solid var(--gold);
+      border-radius:var(--radius); padding:16px;
+      display:flex; justify-content:space-between; align-items:center;
+      margin-bottom:14px;
+    }
+    .total-lbl { font-size:16px; font-weight:700; color:var(--forest); }
+    .total-amt { font-size:26px; font-weight:800; color:var(--gold); }
+
+    .pay-opts { display:flex; flex-direction:column; gap:10px; }
+    .pay-btn {
+      padding:16px; border-radius:var(--radius);
+      font-size:15px; font-weight:600; cursor:pointer;
+      border:none; width:100%; transition:transform 0.1s;
+    }
+    .pay-btn:active { transform:scale(0.98); }
+    .pay-online  { background:var(--gold); color:white; }
+    .pay-onsite  { background:white; color:var(--forest); border:2px solid var(--forest); }
+    .pay-call    { background:white; color:var(--muted); border:2px solid var(--border); }
+
+    /* ── Done screen ── */
+    .done-wrap { text-align:center; padding:40px 16px; }
+    .done-icon { font-size:64px; margin-bottom:16px; }
+    .done-title { font-size:22px; font-weight:700; color:var(--forest); margin-bottom:10px; }
+    .done-text  { font-size:15px; color:var(--muted); line-height:1.6; }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🌞 СОЛНЕЧНЫЙ КРУГ</h1>
+  <div class="sub">Регистрация на фестиваль · 2–5 июля, Раубичи</div>
+  <div class="progress-bar"><div class="progress-fill" id="pFill" style="width:0%"></div></div>
+</div>
+
+<!-- 1. РОЛЬ -->
+<div class="step active" id="step-role">
+  <div class="step-title">Кто вы на фестивале?</div>
+  <div class="step-desc">Выберите формат участия</div>
+  <div class="option-list">
+    <div class="option-card" data-val="participant" onclick="pick('role',this)">
+      <div class="opt-icon">🙋</div>
+      <div class="opt-body"><div class="opt-title">Участник</div><div class="opt-sub">Выбираю дни, питание, проживание</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+    <div class="option-card" data-val="master" onclick="pick('role',this)">
+      <div class="opt-icon">🎓</div>
+      <div class="opt-body"><div class="opt-title">Мастер</div><div class="opt-sub">Провожу мастер-классы</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+    <div class="option-card" data-val="artist" onclick="pick('role',this)">
+      <div class="opt-icon">🎤</div>
+      <div class="opt-body"><div class="opt-title">Артист</div><div class="opt-sub">Выступаю на сцене</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+    <div class="option-card" data-val="volunteer" onclick="pick('role',this)">
+      <div class="opt-icon">🤝</div>
+      <div class="opt-body"><div class="opt-title">Волонтёр</div><div class="opt-sub">Помогаю организаторам · бесплатно</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. ТИП БИЛЕТА -->
+<div class="step" id="step-ticket">
+  <div class="step-title">Выберите билет</div>
+  <div class="step-desc">Для участников фестиваля</div>
+  <div class="vip-wrap">
+    <div class="vip-badge">★ VIP</div>
+    <div class="vip-card" id="vip-card" onclick="pickVip()">
+      <div class="vip-title">Всё включено</div>
+      <div class="vip-price">430 BYN</div>
+      <ul class="vip-features">
+        <li>Все 4 дня фестиваля</li>
+        <li>Домик (проживание)</li>
+        <li>Питание весь фестиваль</li>
+        <li>Записи мастер-классов</li>
+      </ul>
+    </div>
+  </div>
+  <div style="margin:16px 0;text-align:center;color:var(--muted);font-size:13px;">— или —</div>
+  <div class="option-card" data-val="regular" onclick="pickRegular()">
+    <div class="opt-icon">🎫</div>
+    <div class="opt-body"><div class="opt-title">Обычный</div><div class="opt-sub">Выбираю дни и опции самостоятельно</div></div>
+    <div class="opt-check">✓</div>
+  </div>
+  <div class="nav"><button class="btn btn-back" onclick="goBack()">◀ Назад</button></div>
+</div>
+
+<!-- 3. ДНИ -->
+<div class="step" id="step-days">
+  <div class="step-title">Выберите дни</div>
+  <div class="step-desc">Можно выбрать один или несколько</div>
+  <div class="option-list">
+    <div class="option-card" data-day="2 июля (чт)" data-price="50" onclick="toggleDay(this)">
+      <div class="opt-icon">🌿</div>
+      <div class="opt-body"><div class="opt-title">2 июля (чт)</div><div class="opt-sub">50 BYN</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+    <div class="option-card" data-day="3 июля (пт)" data-price="70" onclick="toggleDay(this)">
+      <div class="opt-icon">🌞</div>
+      <div class="opt-body"><div class="opt-title">3 июля (пт)</div><div class="opt-sub">70 BYN</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+    <div class="option-card" data-day="4 июля (сб, Купалье)" data-price="90" onclick="toggleDay(this)">
+      <div class="opt-icon">🔥</div>
+      <div class="opt-body"><div class="opt-title">4 июля (сб) — Купалье</div><div class="opt-sub">90 BYN · главный день</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+    <div class="option-card" data-day="5 июля (вс)" data-price="70" onclick="toggleDay(this)">
+      <div class="opt-icon">🌅</div>
+      <div class="opt-body"><div class="opt-title">5 июля (вс)</div><div class="opt-sub">70 BYN</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+  </div>
+  <div class="sel-total" id="days-total" style="display:none">
+    <span id="days-cnt"></span><span id="days-sum"></span>
+  </div>
+  <div class="nav">
+    <button class="btn btn-back" onclick="goBack()">◀ Назад</button>
+    <button class="btn btn-next" id="days-next" onclick="next()" disabled>Далее →</button>
+  </div>
+</div>
+
+<!-- 4. ПРОЖИВАНИЕ -->
+<div class="step" id="step-acc">
+  <div class="step-title">Проживание</div>
+  <div class="step-desc" id="acc-desc">Выберите вариант размещения</div>
+  <div class="option-list">
+    <div class="option-card" data-val="tent" onclick="pick('acc',this)">
+      <div class="opt-icon">⛺</div>
+      <div class="opt-body"><div class="opt-title">Своя палатка</div><div class="opt-sub" id="tent-sub">8 BYN / ночь</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+    <div class="option-card" data-val="hall" onclick="pick('acc',this)">
+      <div class="opt-icon">🏠</div>
+      <div class="opt-body"><div class="opt-title">Общий зал</div><div class="opt-sub" id="hall-sub">15 BYN / ночь · коврик и спальник свои</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+    <div class="option-card" id="acc-none" data-val="none" onclick="pick('acc',this)">
+      <div class="opt-icon">🚶</div>
+      <div class="opt-body"><div class="opt-title">Без проживания</div><div class="opt-sub">Дневной формат</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+  </div>
+  <div class="nav"><button class="btn btn-back" onclick="goBack()">◀ Назад</button></div>
+</div>
+
+<!-- 5. НОЧИ -->
+<div class="step" id="step-nights">
+  <div class="step-title">Выберите ночи</div>
+  <div class="step-desc">Какие ночи планируете ночевать</div>
+  <div class="option-list">
+    <div class="option-card" data-night="ночь 2→3 июля" onclick="toggleNight(this)">
+      <div class="opt-icon">🌙</div>
+      <div class="opt-body"><div class="opt-title">Ночь 2→3 июля</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+    <div class="option-card" data-night="ночь 3→4 июля" onclick="toggleNight(this)">
+      <div class="opt-icon">🌙</div>
+      <div class="opt-body"><div class="opt-title">Ночь 3→4 июля</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+    <div class="option-card" data-night="ночь 4→5 июля" onclick="toggleNight(this)">
+      <div class="opt-icon">🌙</div>
+      <div class="opt-body"><div class="opt-title">Ночь 4→5 июля</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+  </div>
+  <div class="sel-total" id="nights-total" style="display:none">
+    <span id="nights-cnt"></span><span id="nights-sum"></span>
+  </div>
+  <div class="nav">
+    <button class="btn btn-back" onclick="goBack()">◀ Назад</button>
+    <button class="btn btn-next" id="nights-next" onclick="next()" disabled>Далее →</button>
+  </div>
+</div>
+
+<!-- 5b. ВОЛОНТЁР ДАТЫ -->
+<div class="step" id="step-voldates">
+  <div class="step-title">Даты участия</div>
+  <div class="vol-badge">🤝 Волонтёр — участие бесплатное</div>
+  <div class="inp-group">
+    <label class="inp-label">Дата приезда</label>
+    <input class="inp-field" id="arrival" type="text" placeholder="например: 2 июля" oninput="checkVolDates()">
+  </div>
+  <div class="inp-group">
+    <label class="inp-label">Дата отъезда</label>
+    <input class="inp-field" id="departure" type="text" placeholder="например: 5 июля" oninput="checkVolDates()">
+  </div>
+  <div class="nav">
+    <button class="btn btn-back" onclick="goBack()">◀ Назад</button>
+    <button class="btn btn-next" id="voldates-next" onclick="next()" disabled>Далее →</button>
+  </div>
+</div>
+
+<!-- 6. ПИТАНИЕ -->
+<div class="step" id="step-food">
+  <div class="step-title">Питание</div>
+  <div class="step-desc">Необязательно — можно пропустить</div>
+  <div class="option-list" id="food-list"></div>
+  <div class="sel-total" id="food-total" style="display:none">
+    <span>Питание итого:</span><span id="food-sum"></span>
+  </div>
+  <div class="nav">
+    <button class="btn btn-back" onclick="goBack()">◀ Назад</button>
+    <button class="btn btn-next" onclick="next()">Далее →</button>
+  </div>
+</div>
+
+<!-- 7. ИМЯ -->
+<div class="step" id="step-name">
+  <div class="step-title">Ваше имя</div>
+  <div class="step-desc">Как к вам обращаться</div>
+  <div class="inp-group">
+    <input class="inp-field" id="name-inp" type="text" placeholder="Имя и фамилия" oninput="checkName()">
+  </div>
+  <div class="nav">
+    <button class="btn btn-back" onclick="goBack()">◀ Назад</button>
+    <button class="btn btn-next" id="name-next" onclick="next()" disabled>Далее →</button>
+  </div>
+</div>
+
+<!-- 8. ТЕЛЕФОН -->
+<div class="step" id="step-phone">
+  <div class="step-title">Телефон</div>
+  <div class="step-desc">Для связи с вами</div>
+  <div class="inp-group">
+    <input class="inp-field" id="phone-inp" type="tel" placeholder="+375291234567" oninput="checkPhone()">
+    <div class="inp-hint">Формат: +375XXXXXXXXX или +7XXXXXXXXXX<br>Если телефона нет — напишите «нет»</div>
+    <div class="inp-error" id="phone-err">Неверный формат. Проверьте и введите снова.</div>
+  </div>
+  <div class="nav">
+    <button class="btn btn-back" onclick="goBack()">◀ Назад</button>
+    <button class="btn btn-next" id="phone-next" onclick="next()" disabled>Далее →</button>
+  </div>
+</div>
+
+<!-- 9. ДЕТИ -->
+<div class="step" id="step-children">
+  <div class="step-title">Дети</div>
+  <div class="step-desc">Придёте с детьми до 16 лет?</div>
+  <div class="option-list">
+    <div class="option-card" data-val="yes" onclick="pick('children',this)">
+      <div class="opt-icon">👨‍👧</div>
+      <div class="opt-body">
+        <div class="opt-title">Да, приду с детьми</div>
+        <div class="opt-sub">0–8 лет бесплатно · 9–12 лет 10 BYN · 13–15 лет скидка 50%</div>
+      </div>
+      <div class="opt-check">✓</div>
+    </div>
+    <div class="option-card" data-val="no" onclick="pick('children',this)">
+      <div class="opt-icon">➡️</div>
+      <div class="opt-body"><div class="opt-title">Нет, без детей</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+  </div>
+  <div class="nav"><button class="btn btn-back" onclick="goBack()">◀ Назад</button></div>
+</div>
+
+<!-- 10. ТРАНСПОРТ -->
+<div class="step" id="step-transport">
+  <div class="step-title">Транспорт</div>
+  <div class="step-desc">Как планируете добираться?</div>
+  <div class="option-list">
+    <div class="option-card" data-val="transfer" onclick="pick('transport',this)">
+      <div class="opt-icon">🚌</div>
+      <div class="opt-body"><div class="opt-title">Солнечный бус</div><div class="opt-sub">Трансфер от м. Восток</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+    <div class="option-card" data-val="own" onclick="pick('transport',this)">
+      <div class="opt-icon">🚗</div>
+      <div class="opt-body"><div class="opt-title">Своя машина</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+    <div class="option-card" data-val="own_passengers" onclick="pick('transport',this)">
+      <div class="opt-icon">🚗💺</div>
+      <div class="opt-body"><div class="opt-title">Своя машина</div><div class="opt-sub">Есть места для попутчиков</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+    <div class="option-card" data-val="public" onclick="pick('transport',this)">
+      <div class="opt-icon">🚐</div>
+      <div class="opt-body"><div class="opt-title">Общественный транспорт</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+  </div>
+  <div class="nav"><button class="btn btn-back" onclick="goBack()">◀ Назад</button></div>
+</div>
+
+<!-- 11. ОТКУДА -->
+<div class="step" id="step-source">
+  <div class="step-title">Откуда узнали?</div>
+  <div class="step-desc">Как вы нашли фестиваль</div>
+  <div class="option-list">
+    <div class="option-card" data-val="social" onclick="pick('source',this)">
+      <div class="opt-icon">📱</div>
+      <div class="opt-body"><div class="opt-title">Соцсети / Telegram</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+    <div class="option-card" data-val="friends" onclick="pick('source',this)">
+      <div class="opt-icon">👥</div>
+      <div class="opt-body"><div class="opt-title">От знакомых</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+    <div class="option-card" data-val="repeat" onclick="pick('source',this)">
+      <div class="opt-icon">🔄</div>
+      <div class="opt-body"><div class="opt-title">Уже бывал(а) на фестивале</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+    <div class="option-card" data-val="other" onclick="pick('source',this)">
+      <div class="opt-icon">✏️</div>
+      <div class="opt-body"><div class="opt-title">Другое</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+  </div>
+  <div class="nav"><button class="btn btn-back" onclick="goBack()">◀ Назад</button></div>
+</div>
+
+<!-- 12. ИТОГ -->
+<div class="step" id="step-summary">
+  <div class="step-title">Ваша заявка</div>
+  <div class="step-desc">Проверьте данные перед отправкой</div>
+  <div class="sum-card" id="sum-rows"></div>
+  <div class="total-row">
+    <div class="total-lbl">Итого к оплате:</div>
+    <div class="total-amt" id="total-amt">0 BYN</div>
+  </div>
+  <div class="pay-opts" id="pay-opts"></div>
+  <button class="btn btn-back" style="width:100%;margin-top:12px" onclick="goBack()">✏️ Изменить данные</button>
+</div>
+
+<!-- DONE -->
+<div class="step" id="step-done">
+  <div class="done-wrap">
+    <div class="done-icon">🌞</div>
+    <div class="done-title">Заявка отправлена!</div>
+    <div class="done-text">Мы получили вашу заявку и скоро свяжемся с вами.<br><br>До встречи на «Солнечном круге»!</div>
+  </div>
+</div>
+
+<script>
+// ── Telegram init ──────────────────────────────────────────────────
+const tg = window.Telegram?.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+
+// ── State ──────────────────────────────────────────────────────────
+const S = {
+  role:null, ticketType:null,
+  days:[], accommodation:null,
+  nights:[], arrivalDate:'', departureDate:'',
+  food:[], name:'', phone:'',
+  children:null, transport:null, source:null,
+};
+
+const DAY_PRICES  = {'2 июля (чт)':50,'3 июля (пт)':70,'4 июля (сб, Купалье)':90,'5 июля (вс)':70};
+const FOOD_PRICES = {'2 июля (чт)':10,'3 июля (пт)':33,'4 июля (сб, Купалье)':33,'5 июля (вс)':23};
+const FOOD_NOTES  = {'2 июля (чт)':'только ужин','3 июля (пт)':'3 приёма','4 июля (сб, Купалье)':'3 приёма','5 июля (вс)':'завтрак + обед'};
+const ACC_NIGHT   = {tent:8, hall:15};
+const DAYS_ORDER  = ['2 июля (чт)','3 июля (пт)','4 июля (сб, Купалье)','5 июля (вс)'];
+
+// ── Step machine ───────────────────────────────────────────────────
+let cur = 'role';
+const hist = [];
+
+function afterStep(from) {
+  switch(from) {
+    case 'role':    return S.role==='volunteer' ? 'acc' : 'ticket';
+    case 'ticket':  return S.ticketType==='vip' ? 'acc' : 'days';
+    case 'days':    return 'acc';
+    case 'acc':
+      if (S.role==='volunteer') return 'voldates';
+      return S.accommodation!=='none' ? 'nights' : 'food';
+    case 'nights':  return 'food';
+    case 'voldates':return 'food';
+    case 'food':    return 'name';
+    case 'name':    return 'phone';
+    case 'phone':   return 'children';
+    case 'children':return 'transport';
+    case 'transport':return 'source';
+    case 'source':  return 'summary';
+    default:        return null;
+  }
+}
+
+function show(id) {
+  document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('step-'+id).classList.add('active');
+  cur = id;
+  const all=['role','ticket','days','acc','nights','voldates','food','name','phone','children','transport','source','summary'];
+  const i = all.indexOf(id);
+  document.getElementById('pFill').style.width = i<0?'100%': Math.round(i/(all.length-1)*100)+'%';
+  window.scrollTo(0,0);
+  if (tg) { hist.length ? tg.BackButton.show() : tg.BackButton.hide(); }
+}
+
+function next() {
+  const n = afterStep(cur);
+  if (!n) return;
+  hist.push(cur);
+  if (n==='food')    buildFood();
+  if (n==='summary') buildSummary();
+  if (n==='acc' && S.role==='volunteer') {
+    document.getElementById('acc-desc').textContent = 'Где будете ночевать';
+    document.getElementById('acc-none').style.display = 'none';
+    document.getElementById('tent-sub').textContent = 'бесплатно для волонтёра';
+    document.getElementById('hall-sub').textContent = 'бесплатно для волонтёра · коврик и спальник свои';
+  }
+  show(n);
+}
+
+function goBack() {
+  if (hist.length) show(hist.pop());
+}
+
+if (tg) tg.BackButton.onClick(goBack);
+
+// ── Selectors ─────────────────────────────────────────────────────
+function pick(key, card) {
+  const val = card.dataset.val;
+  S[key] = val;
+  const step = card.closest('.step');
+  step.querySelectorAll('.option-card').forEach(c=>c.classList.remove('selected'));
+  card.classList.add('selected');
+  setTimeout(next, 180);
+}
+
+function pickVip() {
+  S.ticketType = 'vip';
+  document.getElementById('vip-card').classList.add('selected');
+  setTimeout(next, 180);
+}
+
+function pickRegular() {
+  S.ticketType = 'regular';
+  hist.push(cur);
+  show('days');
+}
+
+// ── Days ──────────────────────────────────────────────────────────
+function toggleDay(card) {
+  const d = card.dataset.day;
+  const i = S.days.indexOf(d);
+  if (i>-1) { S.days.splice(i,1); card.classList.remove('selected'); }
+  else       { S.days.push(d);    card.classList.add('selected'); }
+  const tot = S.days.reduce((s,x)=>s+DAY_PRICES[x],0);
+  const el = document.getElementById('days-total');
+  if (S.days.length) {
+    el.style.display='flex';
+    document.getElementById('days-cnt').textContent = S.days.length+' дн.';
+    document.getElementById('days-sum').textContent = tot+' BYN';
+    document.getElementById('days-next').disabled = false;
+  } else {
+    el.style.display='none';
+    document.getElementById('days-next').disabled = true;
+  }
+}
+
+// ── Nights ────────────────────────────────────────────────────────
+function toggleNight(card) {
+  const n = card.dataset.night;
+  const i = S.nights.indexOf(n);
+  if (i>-1) { S.nights.splice(i,1); card.classList.remove('selected'); }
+  else       { S.nights.push(n);    card.classList.add('selected'); }
+  const pn = ACC_NIGHT[S.accommodation]||0;
+  const tot = S.nights.length * pn;
+  const el = document.getElementById('nights-total');
+  if (S.nights.length) {
+    el.style.display='flex';
+    document.getElementById('nights-cnt').textContent = S.nights.length+' ноч.';
+    document.getElementById('nights-sum').textContent = tot+' BYN';
+    document.getElementById('nights-next').disabled = false;
+  } else {
+    el.style.display='none';
+    document.getElementById('nights-next').disabled = true;
+  }
+}
+
+// ── Volunteer dates ───────────────────────────────────────────────
+function checkVolDates() {
+  S.arrivalDate   = document.getElementById('arrival').value.trim();
+  S.departureDate = document.getElementById('departure').value.trim();
+  document.getElementById('voldates-next').disabled = !(S.arrivalDate && S.departureDate);
+}
+
+// ── Food ─────────────────────────────────────────────────────────
+function buildFood() {
+  const days = S.ticketType==='vip' ? DAYS_ORDER : S.days;
+  const list = document.getElementById('food-list');
+  list.innerHTML = '';
+  days.forEach(d=>{
+    const div = document.createElement('div');
+    div.className = 'option-card';
+    div.dataset.food = d;
+    div.innerHTML = `<div class="opt-icon">🍽</div>
+      <div class="opt-body">
+        <div class="opt-title">${d}</div>
+        <div class="opt-sub">${FOOD_PRICES[d]} BYN · ${FOOD_NOTES[d]}</div>
+      </div><div class="opt-check">✓</div>`;
+    div.onclick = function(){ toggleFood(this); };
+    list.appendChild(div);
+  });
+}
+
+function toggleFood(card) {
+  const d = card.dataset.food;
+  const i = S.food.indexOf(d);
+  if (i>-1) { S.food.splice(i,1); card.classList.remove('selected'); }
+  else       { S.food.push(d);    card.classList.add('selected'); }
+  const tot = S.food.reduce((s,x)=>s+FOOD_PRICES[x],0);
+  const el = document.getElementById('food-total');
+  if (S.food.length) {
+    el.style.display='flex';
+    document.getElementById('food-sum').textContent = tot+' BYN';
+  } else { el.style.display='none'; }
+}
+
+// ── Name ─────────────────────────────────────────────────────────
+function checkName() {
+  S.name = document.getElementById('name-inp').value.trim();
+  document.getElementById('name-next').disabled = S.name.length < 2;
+}
+
+// ── Phone ────────────────────────────────────────────────────────
+function checkPhone() {
+  const v = document.getElementById('phone-inp').value.trim();
+  const none = ['нет','no','-','—'].includes(v.toLowerCase());
+  const valid = /^\+375\d{9}$/.test(v) || /^\+7\d{10}$/.test(v);
+  const err = document.getElementById('phone-err');
+  const btn = document.getElementById('phone-next');
+  if (!v) { err.style.display='none'; btn.disabled=true; return; }
+  if (none||valid) {
+    err.style.display='none'; btn.disabled=false;
+    S.phone = none ? '' : v;
+  } else if (v.length>5) {
+    err.style.display='block'; btn.disabled=true;
+  } else {
+    err.style.display='none'; btn.disabled=true;
+  }
+}
+
+// ── Summary ──────────────────────────────────────────────────────
+const ROLE_L  = {participant:'🙋 Участник',master:'🎓 Мастер',artist:'🎤 Артист',volunteer:'🤝 Волонтёр'};
+const TRANS_L = {transfer:'🚌 Солнечный бус',own:'🚗 Своя машина',own_passengers:'🚗 Машина + попутчики',public:'🚐 Общественный транспорт'};
+const SRC_L   = {social:'📱 Соцсети/Telegram',friends:'👥 От знакомых',repeat:'🔄 Уже бывал(а)',other:'✏️ Другое'};
+const ACC_L   = {tent:'⛺ Своя палатка',hall:'🏠 Общий зал',none:'🚶 Без проживания'};
+
+function calcTotal() {
+  if (S.role==='volunteer') return 0;
+  if (S.ticketType==='vip') return 430;
+  let t = S.days.reduce((s,d)=>s+DAY_PRICES[d],0);
+  if (S.accommodation!=='none') t += S.nights.length * (ACC_NIGHT[S.accommodation]||0);
+  t += S.food.reduce((s,d)=>s+FOOD_PRICES[d],0);
+  return t;
+}
+
+function buildSummary() {
+  const rows = [];
+  rows.push(['Роль', ROLE_L[S.role]]);
+  if (S.role==='volunteer') {
+    rows.push(['Проживание', ACC_L[S.accommodation]||'']);
+    if (S.arrivalDate) rows.push(['Дата приезда', S.arrivalDate]);
+    if (S.departureDate) rows.push(['Дата отъезда', S.departureDate]);
+    rows.push(['Участие', '✅ Бесплатно']);
+    rows.push(['Питание', '✅ Включено']);
+  } else if (S.ticketType==='vip') {
+    rows.push(['Билет', '⭐ VIP — 430 BYN']);
+    rows.push(['Проживание', ACC_L[S.accommodation]||'']);
+  } else {
+    rows.push(['Дни', S.days.length ? S.days.join(', ') : '—']);
+    rows.push(['Проживание', ACC_L[S.accommodation]||'']);
+    if (S.nights.length) rows.push(['Ночи', S.nights.join(', ')]);
+    if (S.food.length) rows.push(['Питание', S.food.join(', ')]);
+  }
+  rows.push(['Имя', S.name]);
+  rows.push(['Телефон', S.phone||'не указан']);
+  rows.push(['Дети', S.children==='yes'?'Да':'Нет']);
+  rows.push(['Транспорт', TRANS_L[S.transport]||'']);
+  rows.push(['Откуда узнали', SRC_L[S.source]||'']);
+
+  document.getElementById('sum-rows').innerHTML = rows.map(([l,v])=>
+    `<div class="sum-row"><span class="sum-lbl">${l}</span><span class="sum-val">${v}</span></div>`
+  ).join('');
+
+  const tot = calcTotal();
+  const amtEl = document.getElementById('total-amt');
+  if (S.role==='volunteer') { amtEl.style.fontSize='20px'; amtEl.textContent='Бесплатно'; }
+  else amtEl.textContent = tot+' BYN';
+
+  const po = document.getElementById('pay-opts');
+  po.innerHTML = '';
+
+  if (S.role!=='volunteer' && tot>0) {
+    po.innerHTML += `<button class="pay-btn pay-online" onclick="submit('pay')">💳 Оплатить онлайн (${tot} BYN)</button>`;
+    po.innerHTML += `<button class="pay-btn pay-onsite" onclick="submit('pay_at_fest')">🎪 Оплачу на месте</button>`;
+  } else {
+    po.innerHTML += `<button class="pay-btn pay-online" onclick="submit('pay_at_fest')">✅ Подтвердить регистрацию</button>`;
+  }
+  po.innerHTML += `<button class="pay-btn pay-call" onclick="submit('call')">📞 Нужны уточнения — позвоните мне</button>`;
+}
+
+function submit(action) {
+  const data = JSON.stringify({...S, action, total: calcTotal()});
+  if (tg && tg.sendData) {
+    tg.sendData(data);
+  } else {
+    hist.push(cur);
+    show('done');
+  }
+}
+
+// ── Start ─────────────────────────────────────────────────────────
+show('role');
+</script>
+</body>
+</html>
