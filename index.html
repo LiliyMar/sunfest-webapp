@@ -592,13 +592,14 @@ const hist = [];
 function afterStep(from) {
   switch(from) {
     case 'oferta':  return 'role';
-    case 'role':    return S.role==='volunteer' ? 'acc' : 'ticket';
+    case 'role':    return (S.role==='volunteer' || S.role==='artist') ? 'acc' : 'ticket';
     case 'ticket':  return S.ticketType==='vip' ? 'acc' : 'days';
     case 'days':    return 'acc';
     case 'acc':
       if (S.role==='volunteer') return 'voldates';
+      if (S.role==='artist')    return S.accommodation!=='none' ? 'nights' : 'name';
       return S.accommodation!=='none' ? 'nights' : 'food';
-    case 'nights':  return 'food';
+    case 'nights':  return S.role==='artist' ? 'name' : 'food';
     case 'voldates':return 'food';
     case 'food':    return 'name';
     case 'name':    return 'phone';
@@ -628,11 +629,23 @@ function next() {
   hist.push(cur);
   if (n==='food')    buildFood();
   if (n==='summary') buildSummary();
+  if (n==='days')    updateDayPriceVisibility();
   if (n==='acc' && S.role==='volunteer') {
     document.getElementById('acc-desc').textContent = 'Где будете ночевать';
     document.getElementById('acc-none').style.display = 'none';
     document.getElementById('tent-sub').textContent = 'бесплатно для волонтёра';
     document.getElementById('hall-sub').textContent = 'бесплатно для волонтёра · коврик и спальник свои';
+  }
+  if (n==='acc' && S.role==='artist') {
+    document.getElementById('acc-desc').textContent = 'Где будете ночевать';
+    document.getElementById('acc-none').style.display = '';
+    document.getElementById('tent-sub').textContent = 'бесплатно для артиста';
+    document.getElementById('hall-sub').textContent = 'бесплатно для артиста · коврик и спальник свои';
+  }
+  if (n==='acc' && S.role!=='volunteer' && S.role!=='artist') {
+    document.getElementById('acc-none').style.display = '';
+    document.getElementById('tent-sub').textContent = '8 BYN / ночь';
+    document.getElementById('hall-sub').textContent = '15 BYN / ночь · коврик и спальник свои';
   }
   show(n);
 }
@@ -673,15 +686,26 @@ function toggleDay(card) {
   else       { S.days.push(d);    card.classList.add('selected'); }
   const tot = S.days.reduce((s,x)=>s+DAY_PRICES[x],0);
   const el = document.getElementById('days-total');
+  const isArtist = S.role==='artist';
   if (S.days.length) {
-    el.style.display='flex';
-    document.getElementById('days-cnt').textContent = S.days.length+' дн.';
-    document.getElementById('days-sum').textContent = tot+' BYN';
+    if (!isArtist) {
+      el.style.display='flex';
+      document.getElementById('days-cnt').textContent = S.days.length+' дн.';
+      document.getElementById('days-sum').textContent = tot+' BYN';
+    }
     document.getElementById('days-next').disabled = false;
   } else {
     el.style.display='none';
     document.getElementById('days-next').disabled = true;
   }
+}
+
+function updateDayPriceVisibility() {
+  const isArtist = S.role==='artist';
+  document.querySelectorAll('#step-days .opt-sub').forEach(el => {
+    el.style.display = isArtist ? 'none' : '';
+  });
+  document.getElementById('days-total').style.display = 'none';
 }
 
 // ── Nights ────────────────────────────────────────────────────────
@@ -783,7 +807,7 @@ const SRC_L   = {social:'📱 Соцсети/Telegram',friends:'👥 От зна
 const ACC_L   = {tent:'⛺ Своя палатка',hall:'🏠 Общий зал',none:'🚶 Без проживания'};
 
 function calcTotal() {
-  if (S.role==='volunteer') return 0;
+  if (S.role==='volunteer' || S.role==='artist') return 0;
   if (S.ticketType==='vip') return 430;
   let t = S.days.reduce((s,d)=>s+DAY_PRICES[d],0);
   if (S.accommodation!=='none') t += S.nights.length * (ACC_NIGHT[S.accommodation]||0);
@@ -800,6 +824,11 @@ function buildSummary() {
     if (S.departureDate) rows.push(['Дата отъезда', S.departureDate]);
     rows.push(['Участие', '✅ Бесплатно']);
     rows.push(['Питание', '✅ Включено']);
+  } else if (S.role==='artist') {
+    rows.push(['Дни', S.days.length ? S.days.join(', ') : '—']);
+    rows.push(['Проживание', ACC_L[S.accommodation]||'']);
+    if (S.nights.length) rows.push(['Ночи', S.nights.join(', ')]);
+    rows.push(['Участие', '✅ Бесплатно']);
   } else if (S.ticketType==='vip') {
     rows.push(['Оргвзнос', '⭐ VIP — 430 BYN']);
     rows.push(['Проживание', ACC_L[S.accommodation]||'']);
@@ -823,13 +852,13 @@ function buildSummary() {
 
   const tot = calcTotal();
   const amtEl = document.getElementById('total-amt');
-  if (S.role==='volunteer') { amtEl.style.fontSize='20px'; amtEl.textContent='Бесплатно'; }
+  if (S.role==='volunteer' || S.role==='artist') { amtEl.style.fontSize='20px'; amtEl.textContent='Бесплатно'; }
   else amtEl.textContent = tot+' BYN';
 
   const po = document.getElementById('pay-opts');
   po.innerHTML = '';
 
-  if (S.role!=='volunteer' && tot>0) {
+  if (S.role!=='volunteer' && S.role!=='artist' && tot>0) {
     po.innerHTML += `<button class="pay-btn pay-online" onclick="submit('pay')">💳 Оплатить онлайн (${tot} BYN)</button>`;
     po.innerHTML += `<button class="pay-btn pay-onsite" onclick="submit('pay_at_fest')">🎪 Оплачу на месте</button>`;
   } else {
