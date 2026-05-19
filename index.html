@@ -220,7 +220,7 @@
 
 <!-- 1. РОЛЬ -->
 <div class="step" id="step-role">
-  <div class="step-title">Кто вы на фестивале?</div>
+  <div class="step-title">Кто вы на встрече?</div>
   <div class="step-desc">Выберите формат участия</div>
   <div class="option-list">
     <div class="option-card" data-val="participant" onclick="pick('role',this)">
@@ -249,14 +249,14 @@
 <!-- 2. ТИП БИЛЕТА -->
 <div class="step" id="step-ticket">
   <div class="step-title">Выберите оргвзнос</div>
-  <div class="step-desc">Для участников фестиваля</div>
+  <div class="step-desc">Для участников встречи</div>
   <div class="vip-wrap">
     <div class="vip-badge">★ VIP</div>
     <div class="vip-card" id="vip-card" onclick="pickVip()">
       <div class="vip-title">Всё включено</div>
       <div class="vip-price">430 BYN</div>
       <ul class="vip-features">
-        <li>Все 4 дня фестиваля</li>
+        <li>Все 4 дня встречи</li>
         <li>Домик (проживание)</li>
         <li>Питание на все дни</li>
         <li>Записи мастер-классов</li>
@@ -312,17 +312,17 @@
   <div class="step-title">Проживание</div>
   <div class="step-desc" id="acc-desc">Выберите вариант размещения</div>
   <div class="option-list">
-    <div class="option-card" data-val="tent" onclick="pick('acc',this)">
+    <div class="option-card" data-val="tent" onclick="pick('accommodation',this)">
       <div class="opt-icon">⛺</div>
       <div class="opt-body"><div class="opt-title">Своя палатка</div><div class="opt-sub" id="tent-sub">8 BYN / ночь</div></div>
       <div class="opt-check">✓</div>
     </div>
-    <div class="option-card" data-val="hall" onclick="pick('acc',this)">
+    <div class="option-card" data-val="hall" onclick="pick('accommodation',this)">
       <div class="opt-icon">🏠</div>
       <div class="opt-body"><div class="opt-title">Общий зал</div><div class="opt-sub" id="hall-sub">15 BYN / ночь · коврик и спальник свои</div></div>
       <div class="opt-check">✓</div>
     </div>
-    <div class="option-card" id="acc-none" data-val="none" onclick="pick('acc',this)">
+    <div class="option-card" id="acc-none" data-val="none" onclick="pick('accommodation',this)">
       <div class="opt-icon">🚶</div>
       <div class="opt-body"><div class="opt-title">Без проживания</div><div class="opt-sub">Дневной формат</div></div>
       <div class="opt-check">✓</div>
@@ -531,7 +531,7 @@
     </div>
     <div class="option-card" data-val="repeat" onclick="pick('source',this)">
       <div class="opt-icon">🔄</div>
-      <div class="opt-body"><div class="opt-title">Уже бывал(а) на фестивале</div></div>
+      <div class="opt-body"><div class="opt-title">Уже бывал(а) на встрече</div></div>
       <div class="opt-check">✓</div>
     </div>
     <div class="option-card" data-val="other" onclick="pick('source',this)">
