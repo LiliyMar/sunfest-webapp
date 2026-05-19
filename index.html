@@ -448,6 +448,48 @@
   <div class="nav"><button class="btn btn-back" onclick="goBack()">◀ Назад</button></div>
 </div>
 
+<!-- 10b. ВРЕМЯ ТРАНСФЕРА -->
+<div class="step" id="step-transfer-times">
+  <div class="step-title">Время трансфера</div>
+  <div class="step-desc">🚌 Солнечный бус от м. Восток — выберите нужные рейсы</div>
+  <div class="option-list">
+    <div class="option-card" data-tt="Четверг, 15:00" onclick="toggleTT(this)">
+      <div class="opt-icon">🌿</div>
+      <div class="opt-body"><div class="opt-title">Четверг, 15:00</div><div class="opt-sub">2 июля · туда</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+    <div class="option-card" data-tt="Четверг, 18:30" onclick="toggleTT(this)">
+      <div class="opt-icon">🌿</div>
+      <div class="opt-body"><div class="opt-title">Четверг, 18:30</div><div class="opt-sub">2 июля · туда</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+    <div class="option-card" data-tt="Пятница, 8:30" onclick="toggleTT(this)">
+      <div class="opt-icon">🌞</div>
+      <div class="opt-body"><div class="opt-title">Пятница, 8:30</div><div class="opt-sub">3 июля · туда</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+    <div class="option-card" data-tt="Суббота, 8:30" onclick="toggleTT(this)">
+      <div class="opt-icon">🔥</div>
+      <div class="opt-body"><div class="opt-title">Суббота, 8:30</div><div class="opt-sub">4 июля · туда</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+    <div class="option-card" data-tt="Воскресенье, 8:30" onclick="toggleTT(this)">
+      <div class="opt-icon">🌅</div>
+      <div class="opt-body"><div class="opt-title">Воскресенье, 8:30</div><div class="opt-sub">5 июля · туда</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+    <div class="option-card" data-tt="Обратно: Воскресенье, 19:00" onclick="toggleTT(this)">
+      <div class="opt-icon">🏠</div>
+      <div class="opt-body"><div class="opt-title">Обратно: Воскресенье, 19:00</div><div class="opt-sub">5 июля · обратно</div></div>
+      <div class="opt-check">✓</div>
+    </div>
+  </div>
+  <div class="nav">
+    <button class="btn btn-back" onclick="goBack()">◀ Назад</button>
+    <button class="btn btn-next" id="tt-next" onclick="next()" disabled>Далее →</button>
+  </div>
+</div>
+
 <!-- 11. ОТКУДА -->
 <div class="step" id="step-source">
   <div class="step-title">Откуда узнали?</div>
@@ -510,7 +552,7 @@ const S = {
   days:[], accommodation:null,
   nights:[], arrivalDate:'', departureDate:'',
   food:[], name:'', phone:'',
-  children:null, transport:null, source:null,
+  children:null, transport:null, transferTimes:[], source:null,
 };
 
 const DAY_PRICES  = {'2 июля (чт)':50,'3 июля (пт)':70,'4 июля (сб, Купалье)':90,'5 июля (вс)':70};
@@ -537,7 +579,8 @@ function afterStep(from) {
     case 'name':    return 'phone';
     case 'phone':   return 'children';
     case 'children':return 'transport';
-    case 'transport':return 'source';
+    case 'transport':return S.transport==='transfer' ? 'transfer-times' : 'source';
+    case 'transfer-times': return 'source';
     case 'source':  return 'summary';
     default:        return null;
   }
@@ -547,7 +590,7 @@ function show(id) {
   document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
   document.getElementById('step-'+id).classList.add('active');
   cur = id;
-  const all=['role','ticket','days','acc','nights','voldates','food','name','phone','children','transport','source','summary'];
+  const all=['role','ticket','days','acc','nights','voldates','food','name','phone','children','transport','transfer-times','source','summary'];
   const i = all.indexOf(id);
   document.getElementById('pFill').style.width = i<0?'100%': Math.round(i/(all.length-1)*100)+'%';
   window.scrollTo(0,0);
@@ -699,6 +742,15 @@ function checkPhone() {
   }
 }
 
+// ── Transfer times ────────────────────────────────────────────────
+function toggleTT(card) {
+  const t = card.dataset.tt;
+  const i = S.transferTimes.indexOf(t);
+  if (i>-1) { S.transferTimes.splice(i,1); card.classList.remove('selected'); }
+  else       { S.transferTimes.push(t);    card.classList.add('selected'); }
+  document.getElementById('tt-next').disabled = S.transferTimes.length === 0;
+}
+
 // ── Summary ──────────────────────────────────────────────────────
 const ROLE_L  = {participant:'🙋 Участник',master:'🎓 Мастер',artist:'🎤 Артист',volunteer:'🤝 Волонтёр'};
 const TRANS_L = {transfer:'🚌 Солнечный бус',own:'🚗 Своя машина',own_passengers:'🚗 Машина + попутчики',public:'🚐 Общественный транспорт'};
@@ -736,6 +788,8 @@ function buildSummary() {
   rows.push(['Телефон', S.phone||'не указан']);
   rows.push(['Дети', S.children==='yes'?'Да':'Нет']);
   rows.push(['Транспорт', TRANS_L[S.transport]||'']);
+  if (S.transport==='transfer' && S.transferTimes.length)
+    rows.push(['Рейсы', S.transferTimes.join(', ')]);
   rows.push(['Откуда узнали', SRC_L[S.source]||'']);
 
   document.getElementById('sum-rows').innerHTML = rows.map(([l,v])=>
