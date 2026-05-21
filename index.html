@@ -105,6 +105,31 @@
     .vip-features li { font-size:14px; display:flex; align-items:center; gap:8px; }
     .vip-features li::before { content:"✓"; color:var(--gold); font-weight:700; }
 
+    /* ── Solar card ── */
+    :root { --sun:#e07b10; --sun-lt:#f5a623; --sun-bg1:#fff9f0; --sun-bg2:#fff3e0; }
+    .solar-wrap { position:relative; margin-top:4px; }
+    .solar-card {
+      border:2px solid var(--sun);
+      border-radius: var(--radius);
+      padding: 20px 16px;
+      cursor:pointer;
+      background: linear-gradient(135deg,var(--sun-bg1),var(--sun-bg2));
+      transition: box-shadow 0.15s;
+    }
+    .solar-card.selected { box-shadow: 0 0 0 3px var(--sun); }
+    .solar-badge {
+      position:absolute; top:-1px; right:14px;
+      background:var(--sun); color:white;
+      font-size:11px; font-weight:700;
+      padding:3px 10px; border-radius:0 0 8px 8px;
+      letter-spacing:1px;
+    }
+    .solar-title { font-size:17px; font-weight:700; }
+    .solar-price { font-size:22px; font-weight:800; color:var(--sun); margin:4px 0 12px; }
+    .solar-features { list-style:none; display:flex; flex-direction:column; gap:6px; }
+    .solar-features li { font-size:14px; display:flex; align-items:center; gap:8px; }
+    .solar-features li::before { content:"✓"; color:var(--sun); font-weight:700; }
+
     /* ── Input ── */
     .inp-group  { margin-bottom:16px; }
     .inp-label  { display:block; font-size:14px; font-weight:600; color:var(--muted); margin-bottom:8px; }
@@ -252,7 +277,7 @@
 <div class="step active" id="step-oferta">
   <div class="step-title">Добро пожаловать 🌞</div>
   <div class="step-desc">Перед регистрацией — пара слов о наших правилах</div>
-  <div style="background:white;border-radius:var(--radius);padding:16px;border:1px solid var(--border);font-size:14px;line-height:1.7;color:var(--text);margin-bottom:20px;">
+  <div style="background:white;border-radius:var(--radius);padding:16px;border:1px solid var(--border);font-size:14px;line-height:1.7;color:var(--text);margin-bottom:20px;overflow-y:auto;max-height:45vh;">
     <b>Как попасть на «Солнечный круг» и ничего не испортить</b><br><br>
     Друзья, давайте беречь друг друга и это место. У нас просто так:<br>
     — Без сигарет, алкоголя и всего запрещённого<br>
@@ -340,10 +365,19 @@
     </div>
   </div>
   <div style="margin:16px 0;text-align:center;color:var(--muted);font-size:13px;">— или —</div>
-  <div class="option-card" data-val="regular" onclick="pickRegular()">
-    <div class="opt-icon">🎫</div>
-    <div class="opt-body"><div class="opt-title">Обычный</div><div class="opt-sub">Выбираю дни и опции самостоятельно</div></div>
-    <div class="opt-check">✓</div>
+  <div class="solar-wrap">
+    <div class="solar-badge">☀ СОЛНЕЧНОЕ</div>
+    <div class="solar-card" id="solar-card" onclick="pickRegular()">
+      <div class="solar-title">Солнечное</div>
+      <div class="solar-price" id="solar-price-display">— BYN</div>
+      <div id="solar-disc-note" style="display:none;font-size:12px;color:#b8660b;margin-top:-6px;margin-bottom:8px;"></div>
+      <ul class="solar-features">
+        <li>Выбираю дни сам</li>
+        <li>Питание — по желанию</li>
+        <li>Проживание — по желанию</li>
+        <li>Гибкий формат</li>
+      </ul>
+    </div>
   </div>
   <div class="nav"><button class="btn btn-back" onclick="goBack()">◀ Назад</button></div>
 </div>
@@ -774,6 +808,7 @@ function pick(key, card) {
 // ── Инициализация шага билета (VIP цена + скидка) ────────────────
 function buildTicketStep() {
   const disc = getDiscount();
+  // VIP
   const vipPrice = Math.round(VIP_DAYS_FULL * (1 - disc)) + VIP_ACC_FOOD;
   document.getElementById('vip-price-display').textContent = vipPrice + ' BYN';
   const note = document.getElementById('vip-disc-note');
@@ -784,6 +819,18 @@ function buildTicketStep() {
     note.innerHTML = `скидка ${pct}% на оргвзнос · полная цена <span style="text-decoration:line-through">${full} BYN</span>`;
   } else {
     note.style.display = 'none';
+  }
+  // Солнечное — показываем минимальную цену (самый дешёвый день)
+  const minDay = Math.min(...Object.values(DAY_PRICES));
+  const solarMin = Math.round(minDay * (1 - disc));
+  document.getElementById('solar-price-display').textContent = `от ${solarMin} BYN`;
+  const solarNote = document.getElementById('solar-disc-note');
+  if (disc > 0) {
+    const pct = Math.round(disc * 100);
+    solarNote.style.display = 'block';
+    solarNote.innerHTML = `скидка ${pct}% на оргвзнос · гибкий набор дней`;
+  } else {
+    solarNote.style.display = 'none';
   }
 }
 
