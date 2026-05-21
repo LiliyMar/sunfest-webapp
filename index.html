@@ -300,6 +300,27 @@
   </div>
 </div>
 
+<!-- 1b. МАСТЕР — ИНФОРМАЦИЯ -->
+<div class="step" id="step-master-info">
+  <div class="step-title">Добро пожаловать, мастер! 🎓</div>
+  <div style="background:white;border-radius:var(--radius);padding:16px;border:1px solid var(--border);font-size:14px;line-height:1.8;color:var(--text);margin-bottom:20px;">
+    <p>Приветствуем мастеров участка «Солнечный Круг» кооператива Светоч.</p><br>
+    <p>Свободный вход на все дни встречи после внесения организационного сбора:</p><br>
+    <p><b>Вариант 1</b> — 50 б.р. через ЕРИП: по коду → свой номер телефона → своя фамилия и сумма.</p><br>
+    <p><b>Вариант 2 (реферальная программа)</b> — Безоплатное участие. Приведите 2-х новых участников кооператива. Есть и другие бонусы.</p><br>
+    <p style="color:var(--muted);font-size:13px;">Организационный взнос идёт на вступительный и паевой взнос, аренду места, рекламу, логистику и оформление — и является подтверждением вашего участия.</p><br>
+    <p style="color:var(--muted);font-size:13px;">Чем раньше оплачиваете — тем свободнее выбор времени для вашего мастер-класса.</p><br>
+    <div style="background:#e8f5e9;border-radius:8px;padding:12px;border:1px solid #81c784;">
+      <p style="color:#2e7d32;font-size:13px;">🌿 «Солнечный круг» гарантирует информационную поддержку в соцсетях, место для проведения мастер-класса, а также возможность размещать анонсы своих мероприятий и курсов в Instagram, Telegram, Viber, VK на протяжении 6 месяцев. Общая численность ресурсов — более 3 500 человек.</p><br>
+      <p style="color:#2e7d32;font-size:13px;">Открыты к предложениям для общего блага и обсуждению индивидуальных условий :)</p>
+    </div>
+  </div>
+  <div class="nav">
+    <button class="btn btn-back" onclick="goBack()">◀ Назад</button>
+    <button class="btn btn-next" onclick="next()">Далее →</button>
+  </div>
+</div>
+
 <!-- 2. ТИП БИЛЕТА -->
 <div class="step" id="step-ticket">
   <div class="step-title">Выберите оргвзнос</div>
@@ -615,6 +636,13 @@
     <div class="total-lbl">Итого к оплате:</div>
     <div class="total-amt" id="total-amt">0 BYN</div>
   </div>
+  <div id="promo-section" style="display:none;margin-bottom:14px;">
+    <div style="display:flex;gap:8px;align-items:stretch;">
+      <input class="inp-field" id="promo-inp" type="text" placeholder="Промокод" style="flex:1;padding:12px 14px;font-size:15px;">
+      <button class="btn btn-back" style="flex:unset;padding:0 16px;font-size:14px;white-space:nowrap" onclick="applyPromo()">Применить</button>
+    </div>
+    <div id="promo-msg" style="font-size:13px;color:var(--muted);margin-top:6px;"></div>
+  </div>
   <div class="pay-opts" id="pay-opts"></div>
   <button class="btn btn-back" style="width:100%;margin-top:12px" onclick="goBack()">✏️ Изменить данные</button>
 </div>
@@ -640,6 +668,7 @@ const S = {
   nights:[], arrivalDate:'', departureDate:'',
   food:[], name:'', phone:'',
   children:null, transport:null, transferTimes:[], source:null,
+  promoCode:'',
 };
 
 const DAY_PRICES  = {'2 июля (чт)':50,'3 июля (пт)':70,'4 июля (сб, Купалье)':90,'5 июля (вс)':70};
@@ -655,7 +684,8 @@ const hist = [];
 function afterStep(from) {
   switch(from) {
     case 'oferta':  return 'role';
-    case 'role':    return S.role==='volunteer' ? 'acc' : (S.role==='artist' ? 'days' : 'ticket');
+    case 'role':    return S.role==='volunteer' ? 'acc' : (S.role==='artist' ? 'days' : (S.role==='master' ? 'master-info' : 'ticket'));
+    case 'master-info': return 'days';
     case 'ticket':  return S.ticketType==='vip' ? 'nights' : 'days';
     case 'days':    return 'acc';
     case 'acc':
@@ -678,7 +708,7 @@ function show(id) {
   document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
   document.getElementById('step-'+id).classList.add('active');
   cur = id;
-  const all=['oferta','role','ticket','days','acc','nights','voldates','food','name','phone','children','transport','transfer-times','source','summary'];
+  const all=['oferta','role','master-info','ticket','days','acc','nights','voldates','food','name','phone','children','transport','transfer-times','source','summary'];
   const i = all.indexOf(id);
   document.getElementById('pFill').style.width = i<0?'100%': Math.round(i/(all.length-1)*100)+'%';
   window.scrollTo(0,0);
@@ -939,7 +969,7 @@ const SRC_L   = {social:'📱 Соцсети/Telegram',friends:'👥 От зна
 const ACC_L   = {tent:'⛺ Своя палатка',hall:'🏠 Общий зал',none:'🚶 Без проживания'};
 
 function calcTotal() {
-  if (S.role==='volunteer' || S.role==='artist') return 0;
+  if (S.role==='volunteer' || S.role==='artist' || S.role==='master') return 0;
   if (S.ticketType==='vip') return 430;
   let t = S.days.reduce((s,d)=>s+DAY_PRICES[d],0);
   if (S.accommodation!=='none') t += S.nights.length * (ACC_NIGHT[S.accommodation]||0);
@@ -956,6 +986,12 @@ function buildSummary() {
     if (S.departureDate) rows.push(['Дата отъезда', S.departureDate]);
     rows.push(['Участие', '✅ Бесплатно']);
     rows.push(['Питание', '✅ Включено']);
+  } else if (S.role==='master') {
+    rows.push(['Оргвзнос', '50 б.р. (ЕРИП) или реферальная программа']);
+    rows.push(['Дни', S.days.length ? S.days.join(', ') : '—']);
+    rows.push(['Проживание', ACC_L[S.accommodation]||'']);
+    if (S.nights.length) rows.push(['Ночи', S.nights.join(', ')]);
+    if (S.food.length) rows.push(['Питание', S.food.join(', ')]);
   } else if (S.role==='artist') {
     rows.push(['Дни', S.days.length ? S.days.join(', ') : '—']);
     rows.push(['Проживание', ACC_L[S.accommodation]||'']);
@@ -987,12 +1023,21 @@ function buildSummary() {
   const tot = calcTotal();
   const amtEl = document.getElementById('total-amt');
   if (S.role==='volunteer' || S.role==='artist') { amtEl.style.fontSize='20px'; amtEl.textContent='Бесплатно'; }
+  else if (S.role==='master') { amtEl.style.fontSize='16px'; amtEl.textContent='50 б.р. (оплата через ЕРИП)'; }
   else amtEl.textContent = tot+' BYN';
+
+  // Promo code — only for regular participant with 2+ nights
+  const promoSection = document.getElementById('promo-section');
+  promoSection.style.display = (S.role==='participant' && S.ticketType!=='vip' && S.nights.length >= 2) ? 'block' : 'none';
+  if (promoSection.style.display === 'none') { S.promoCode = ''; document.getElementById('promo-inp').value = ''; document.getElementById('promo-msg').textContent = ''; }
 
   const po = document.getElementById('pay-opts');
   po.innerHTML = '';
 
-  if (S.role!=='volunteer' && S.role!=='artist' && tot>0) {
+  if (S.role==='master') {
+    po.innerHTML += `<button class="pay-btn pay-online" onclick="submit('master_erip')">📱 Оплатил через ЕРИП</button>`;
+    po.innerHTML += `<button class="pay-btn pay-onsite" onclick="submit('master_referral')">👥 Участвую по реферальной программе</button>`;
+  } else if (S.role!=='volunteer' && S.role!=='artist' && tot>0) {
     po.innerHTML += `<button class="pay-btn pay-online" onclick="submit('pay')">💳 Оплатить онлайн (${tot} BYN)</button>`;
     po.innerHTML += `<button class="pay-btn pay-onsite" onclick="submit('pay_at_fest')">🎪 Оплачу на месте</button>`;
   } else {
@@ -1008,6 +1053,13 @@ function submit(action) {
   setTimeout(() => {
     if (tg) { try { tg.sendData(data); } catch(e) {} }
   }, 400);
+}
+
+// ── Promo code ───────────────────────────────────────────────────
+function applyPromo() {
+  const v = document.getElementById('promo-inp').value.trim();
+  S.promoCode = v;
+  document.getElementById('promo-msg').textContent = v ? `✓ Промокод «${v}» сохранён` : '';
 }
 
 // ── Skip phone ───────────────────────────────────────────────────
