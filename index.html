@@ -145,6 +145,60 @@
       font-size:14px; color:#2e7d32; margin-bottom:16px;
     }
 
+    /* ── Calendar ── */
+    .cal-hint {
+      text-align:center; font-size:14px; font-weight:600;
+      color:var(--forest); margin-bottom:14px;
+      padding:10px; background:#fff8e8;
+      border-radius:8px; border:1px solid var(--gold);
+    }
+    .cal-month { margin-bottom:18px; }
+    .cal-month-title {
+      font-size:15px; font-weight:700; color:var(--forest);
+      text-align:center; margin-bottom:10px;
+    }
+    .cal-grid {
+      display:grid; grid-template-columns:repeat(7,1fr); gap:4px;
+    }
+    .cal-dow {
+      text-align:center; font-size:11px; font-weight:600;
+      color:var(--muted); padding:4px 0;
+    }
+    .cal-day {
+      text-align:center; padding:9px 4px; border-radius:8px;
+      font-size:14px; cursor:pointer; border:1px solid transparent;
+      transition:all 0.15s; background:white;
+      border:1px solid var(--border);
+    }
+    .cal-day:active { transform:scale(0.93); }
+    .cal-day.empty { background:transparent; border-color:transparent; cursor:default; }
+    .cal-day.cal-arrival { background:var(--gold); color:white; border-color:var(--gold); font-weight:700; }
+    .cal-day.cal-departure { background:var(--forest); color:white; border-color:var(--forest); font-weight:700; }
+    .cal-day.cal-range { background:#fff8e8; border-color:var(--gold); }
+    .cal-day.cal-today { border-color:var(--gold); font-weight:700; }
+    .cal-selected {
+      background:white; border:1px solid var(--border);
+      border-radius:var(--radius); padding:12px 16px;
+      margin-top:14px; display:flex; flex-direction:column; gap:8px;
+    }
+    .cal-sel-row {
+      display:flex; justify-content:space-between; align-items:center;
+      font-size:14px;
+    }
+    .cal-sel-row span { color:var(--muted); }
+    .cal-sel-row strong { color:var(--forest); }
+
+    /* ── Running price banner ── */
+    .price-banner {
+      background:linear-gradient(135deg,#1e3320,#2d5233);
+      color:white; border-radius:var(--radius);
+      padding:12px 16px; margin-top:14px;
+      display:flex; justify-content:space-between; align-items:center;
+      font-size:14px;
+    }
+    .price-banner-lbl { opacity:0.8; }
+    .price-banner-amt { font-size:20px; font-weight:800; color:var(--gold-lt); }
+
     /* ── Summary ── */
     .sum-card {
       background:white; border-radius:var(--radius);
@@ -298,8 +352,9 @@
       <div class="opt-check">✓</div>
     </div>
   </div>
-  <div class="sel-total" id="days-total" style="display:none">
-    <span id="days-cnt"></span><span id="days-sum"></span>
+  <div class="price-banner" id="price-days" style="display:none">
+    <span class="price-banner-lbl">💰 Итого сейчас:</span>
+    <span class="price-banner-amt" id="price-days-val">0 BYN</span>
   </div>
   <div class="nav">
     <button class="btn btn-back" onclick="goBack()">◀ Назад</button>
@@ -352,8 +407,9 @@
       <div class="opt-check">✓</div>
     </div>
   </div>
-  <div class="sel-total" id="nights-total" style="display:none">
-    <span id="nights-cnt"></span><span id="nights-sum"></span>
+  <div class="price-banner" id="price-nights" style="display:none">
+    <span class="price-banner-lbl">💰 Итого сейчас:</span>
+    <span class="price-banner-amt" id="price-nights-val">0 BYN</span>
   </div>
   <div class="nav">
     <button class="btn btn-back" onclick="goBack()">◀ Назад</button>
@@ -365,13 +421,18 @@
 <div class="step" id="step-voldates">
   <div class="step-title">Даты участия</div>
   <div class="vol-badge">🤝 Волонтёр — участие бесплатное</div>
-  <div class="inp-group">
-    <label class="inp-label">Дата приезда</label>
-    <input class="inp-field" id="arrival" type="text" placeholder="например: 2 июля" oninput="checkVolDates()">
+  <div class="cal-hint" id="cal-hint">Выберите дату приезда</div>
+  <div class="cal-month">
+    <div class="cal-month-title">Июнь 2025</div>
+    <div class="cal-grid" id="cal-june"></div>
   </div>
-  <div class="inp-group">
-    <label class="inp-label">Дата отъезда</label>
-    <input class="inp-field" id="departure" type="text" placeholder="например: 5 июля" oninput="checkVolDates()">
+  <div class="cal-month">
+    <div class="cal-month-title">Июль 2025</div>
+    <div class="cal-grid" id="cal-july"></div>
+  </div>
+  <div class="cal-selected" id="cal-selected" style="display:none">
+    <div class="cal-sel-row"><span>📅 Приезд:</span><strong id="cal-arrival-lbl">—</strong></div>
+    <div class="cal-sel-row"><span>📅 Отъезд:</span><strong id="cal-departure-lbl">—</strong></div>
   </div>
   <div class="nav">
     <button class="btn btn-back" onclick="goBack()">◀ Назад</button>
@@ -384,8 +445,9 @@
   <div class="step-title">Питание</div>
   <div class="step-desc">Необязательно — можно пропустить</div>
   <div class="option-list" id="food-list"></div>
-  <div class="sel-total" id="food-total" style="display:none">
-    <span>Питание итого:</span><span id="food-sum"></span>
+  <div class="price-banner" id="price-food" style="display:none">
+    <span class="price-banner-lbl">💰 Итого сейчас:</span>
+    <span class="price-banner-amt" id="price-food-val">0 BYN</span>
   </div>
   <div class="nav">
     <button class="btn btn-back" onclick="goBack()">◀ Назад</button>
@@ -626,9 +688,13 @@ function next() {
   const n = afterStep(cur);
   if (!n) return;
   hist.push(cur);
-  if (n==='food')    buildFood();
-  if (n==='summary') buildSummary();
-  if (n==='days')    updateDayPriceVisibility();
+  if (n==='food')     buildFood();
+  if (n==='summary')  buildSummary();
+  if (n==='days')     updateDayPriceVisibility();
+  if (n==='voldates') { buildCalendar(); calPickStep='arrival'; }
+  if (n==='days')     updatePriceBanner('price-days','price-days-val');
+  if (n==='nights')   updatePriceBanner('price-nights','price-nights-val');
+  if (n==='food')     updatePriceBanner('price-food','price-food-val');
   if (n==='acc' && S.role==='volunteer') {
     document.getElementById('acc-desc').textContent = 'Где будете ночевать';
     document.getElementById('acc-none').style.display = 'none';
@@ -677,26 +743,26 @@ function pickRegular() {
   show('days');
 }
 
+// ── Running price banner ──────────────────────────────────────────
+function updatePriceBanner(stepId, valId) {
+  const tot = calcTotal();
+  const banner = document.getElementById(stepId);
+  if (tot > 0) {
+    banner.style.display = 'flex';
+    document.getElementById(valId).textContent = tot + ' BYN';
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
 // ── Days ──────────────────────────────────────────────────────────
 function toggleDay(card) {
   const d = card.dataset.day;
   const i = S.days.indexOf(d);
   if (i>-1) { S.days.splice(i,1); card.classList.remove('selected'); }
   else       { S.days.push(d);    card.classList.add('selected'); }
-  const tot = S.days.reduce((s,x)=>s+DAY_PRICES[x],0);
-  const el = document.getElementById('days-total');
-  const isArtist = S.role==='artist';
-  if (S.days.length) {
-    if (!isArtist) {
-      el.style.display='flex';
-      document.getElementById('days-cnt').textContent = S.days.length+' дн.';
-      document.getElementById('days-sum').textContent = tot+' BYN';
-    }
-    document.getElementById('days-next').disabled = false;
-  } else {
-    el.style.display='none';
-    document.getElementById('days-next').disabled = true;
-  }
+  document.getElementById('days-next').disabled = S.days.length === 0;
+  updatePriceBanner('price-days','price-days-val');
 }
 
 function updateDayPriceVisibility() {
@@ -704,7 +770,7 @@ function updateDayPriceVisibility() {
   document.querySelectorAll('#step-days .opt-sub').forEach(el => {
     el.style.display = isArtist ? 'none' : '';
   });
-  document.getElementById('days-total').style.display = 'none';
+  document.getElementById('price-days').style.display = 'none';
 }
 
 // ── Nights ────────────────────────────────────────────────────────
@@ -713,25 +779,90 @@ function toggleNight(card) {
   const i = S.nights.indexOf(n);
   if (i>-1) { S.nights.splice(i,1); card.classList.remove('selected'); }
   else       { S.nights.push(n);    card.classList.add('selected'); }
-  const pn = ACC_NIGHT[S.accommodation]||0;
-  const tot = S.nights.length * pn;
-  const el = document.getElementById('nights-total');
-  if (S.nights.length) {
-    el.style.display='flex';
-    document.getElementById('nights-cnt').textContent = S.nights.length+' ноч.';
-    document.getElementById('nights-sum').textContent = tot+' BYN';
-    document.getElementById('nights-next').disabled = false;
-  } else {
-    el.style.display='none';
-    document.getElementById('nights-next').disabled = true;
-  }
+  document.getElementById('nights-next').disabled = S.nights.length === 0;
+  updatePriceBanner('price-nights','price-nights-val');
 }
 
-// ── Volunteer dates ───────────────────────────────────────────────
-function checkVolDates() {
-  S.arrivalDate   = document.getElementById('arrival').value.trim();
-  S.departureDate = document.getElementById('departure').value.trim();
-  document.getElementById('voldates-next').disabled = !(S.arrivalDate && S.departureDate);
+// ── Calendar ──────────────────────────────────────────────────────
+let calPickStep = 'arrival'; // 'arrival' | 'departure'
+
+const CAL_MONTHS = [
+  { id:'cal-june', name:'июня', year:2025, month:5 },
+  { id:'cal-july', name:'июля', year:2025, month:6 },
+];
+const DOW = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+
+function buildCalendar() {
+  CAL_MONTHS.forEach(({id, name, year, month}) => {
+    const grid = document.getElementById(id);
+    let html = DOW.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+    const firstDow = new Date(year, month, 1).getDay(); // 0=Sun
+    const offset = firstDow === 0 ? 6 : firstDow - 1;
+    for (let i=0; i<offset; i++) html += '<div class="cal-day empty"></div>';
+    const total = new Date(year, month+1, 0).getDate();
+    for (let d=1; d<=total; d++) {
+      const label = `${d} ${name}`;
+      html += `<div class="cal-day" data-label="${label}" data-ts="${new Date(year,month,d).getTime()}" onclick="pickCalDay(this)">${d}</div>`;
+    }
+    grid.innerHTML = html;
+  });
+}
+
+function pickCalDay(cell) {
+  const label = cell.dataset.label;
+  const ts    = parseInt(cell.dataset.ts);
+
+  if (calPickStep === 'arrival') {
+    // Reset all highlights
+    document.querySelectorAll('.cal-day').forEach(d=>d.classList.remove('cal-arrival','cal-departure','cal-range'));
+    S.arrivalDate = label;
+    S.departureDate = '';
+    cell.classList.add('cal-arrival');
+    calPickStep = 'departure';
+    document.getElementById('cal-hint').textContent = 'Теперь выберите дату отъезда';
+    document.getElementById('cal-arrival-lbl').textContent = label;
+    document.getElementById('cal-departure-lbl').textContent = '—';
+    document.getElementById('cal-selected').style.display = 'flex';
+    document.getElementById('voldates-next').disabled = true;
+  } else {
+    // Find arrival cell ts
+    const arrCell = document.querySelector('.cal-day.cal-arrival');
+    const arrTs = arrCell ? parseInt(arrCell.dataset.ts) : 0;
+
+    if (ts < arrTs) {
+      // Tapped earlier — restart selection from this date
+      document.querySelectorAll('.cal-day').forEach(d=>d.classList.remove('cal-arrival','cal-departure','cal-range'));
+      S.arrivalDate = label;
+      S.departureDate = '';
+      cell.classList.add('cal-arrival');
+      document.getElementById('cal-arrival-lbl').textContent = label;
+      document.getElementById('cal-departure-lbl').textContent = '—';
+      document.getElementById('voldates-next').disabled = true;
+      return;
+    }
+    if (ts === arrTs) {
+      // Same day = reset arrival, start over
+      document.querySelectorAll('.cal-day').forEach(d=>d.classList.remove('cal-arrival','cal-departure','cal-range'));
+      S.arrivalDate = '';
+      calPickStep = 'arrival';
+      document.getElementById('cal-hint').textContent = 'Выберите дату приезда';
+      document.getElementById('cal-arrival-lbl').textContent = '—';
+      document.getElementById('cal-departure-lbl').textContent = '—';
+      document.getElementById('voldates-next').disabled = true;
+      return;
+    }
+    S.departureDate = label;
+    cell.classList.add('cal-departure');
+    // Highlight range
+    document.querySelectorAll('.cal-day').forEach(d => {
+      const dts = parseInt(d.dataset.ts);
+      if (dts > arrTs && dts < ts) d.classList.add('cal-range');
+    });
+    calPickStep = 'arrival'; // ready for next time
+    document.getElementById('cal-hint').textContent = '✓ Даты выбраны — можно изменить, выбрав снова';
+    document.getElementById('cal-departure-lbl').textContent = label;
+    document.getElementById('voldates-next').disabled = false;
+  }
 }
 
 // ── Food ─────────────────────────────────────────────────────────
@@ -758,12 +889,7 @@ function toggleFood(card) {
   const i = S.food.indexOf(d);
   if (i>-1) { S.food.splice(i,1); card.classList.remove('selected'); }
   else       { S.food.push(d);    card.classList.add('selected'); }
-  const tot = S.food.reduce((s,x)=>s+FOOD_PRICES[x],0);
-  const el = document.getElementById('food-total');
-  if (S.food.length) {
-    el.style.display='flex';
-    document.getElementById('food-sum').textContent = tot+' BYN';
-  } else { el.style.display='none'; }
+  updatePriceBanner('price-food','price-food-val');
 }
 
 // ── Name ─────────────────────────────────────────────────────────
