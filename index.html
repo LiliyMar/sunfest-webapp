@@ -329,7 +329,8 @@
     <div class="vip-badge">★ VIP</div>
     <div class="vip-card" id="vip-card" onclick="pickVip()">
       <div class="vip-title">Всё включено</div>
-      <div class="vip-price">430 BYN</div>
+      <div class="vip-price" id="vip-price-display">— BYN</div>
+    <div id="vip-disc-note" style="display:none;font-size:12px;color:#b8860b;margin-top:-6px;margin-bottom:8px;"></div>
       <ul class="vip-features">
         <li>Все 4 дня встречи</li>
         <li>Домик (проживание)</li>
@@ -351,6 +352,7 @@
 <div class="step" id="step-days">
   <div class="step-title">Выберите дни</div>
   <div class="step-desc">Можно выбрать один или несколько</div>
+  <div id="days-disc-banner" style="display:none;background:linear-gradient(135deg,#2e7d32,#388e3c);color:white;border-radius:var(--radius);padding:10px 14px;margin-bottom:14px;font-size:13px;font-weight:600;"></div>
   <div class="option-list">
     <div class="option-card" data-day="2 июля (чт)" data-price="50" onclick="toggleDay(this)">
       <div class="opt-icon">🌿</div>
@@ -671,7 +673,9 @@ const S = {
   promoCode:'',
 };
 
-const DAY_PRICES  = {'2 июля (чт)':50,'3 июля (пт)':70,'4 июля (сб, Купалье)':90,'5 июля (вс)':70};
+const DAY_PRICES  = {'2 июля (чт)':50,'3 июля (пт)':60,'4 июля (сб, Купалье)':90,'5 июля (вс)':70};
+const VIP_ACC_FOOD = 198; // проживание + питание все дни (фиксировано для VIP)
+const VIP_DAYS_FULL = 270; // оргвзнос VIP без скидки (50+60+90+70)
 const FOOD_PRICES = {'2 июля (чт)':10,'3 июля (пт)':33,'4 июля (сб, Купалье)':33,'5 июля (вс)':23};
 const FOOD_NOTES  = {'2 июля (чт)':'только ужин','3 июля (пт)':'3 приёма','4 июля (сб, Купалье)':'3 приёма','5 июля (вс)':'завтрак + обед'};
 const ACC_NIGHT   = {tent:8, hall:15};
@@ -721,6 +725,7 @@ function next() {
   hist.push(cur);
   if (n==='food')     buildFood();
   if (n==='summary')  buildSummary();
+  if (n==='ticket')   buildTicketStep();
   if (n==='days')     updateDayPriceVisibility();
   if (n==='voldates') { buildCalendar(); calPickStep='arrival'; }
   if (n==='days')     updatePriceBanner('price-days','price-days-val');
@@ -766,6 +771,22 @@ function pick(key, card) {
   setTimeout(next, 180);
 }
 
+// ── Инициализация шага билета (VIP цена + скидка) ────────────────
+function buildTicketStep() {
+  const disc = getDiscount();
+  const vipPrice = Math.round(VIP_DAYS_FULL * (1 - disc)) + VIP_ACC_FOOD;
+  document.getElementById('vip-price-display').textContent = vipPrice + ' BYN';
+  const note = document.getElementById('vip-disc-note');
+  if (disc > 0) {
+    const pct = Math.round(disc * 100);
+    const full = VIP_DAYS_FULL + VIP_ACC_FOOD;
+    note.style.display = 'block';
+    note.innerHTML = `скидка ${pct}% на оргвзнос · полная цена <span style="text-decoration:line-through">${full} BYN</span>`;
+  } else {
+    note.style.display = 'none';
+  }
+}
+
 function pickVip() {
   S.ticketType = 'vip';
   document.getElementById('vip-card').classList.add('selected');
@@ -775,6 +796,7 @@ function pickVip() {
 function pickRegular() {
   S.ticketType = 'regular';
   hist.push(cur);
+  updateDayPriceVisibility();
   show('days');
 }
 
@@ -802,9 +824,31 @@ function toggleDay(card) {
 }
 
 function updateDayPriceVisibility() {
-  const isArtist = S.role==='artist';
-  document.querySelectorAll('#step-days .opt-sub').forEach(el => {
-    el.style.display = isArtist ? 'none' : '';
+  const isArtist = S.role === 'artist';
+  const disc = getDiscount();
+  // Баннер скидки
+  const banner = document.getElementById('days-disc-banner');
+  const badgeText = discountBadgeText();
+  if (!isArtist && badgeText) {
+    banner.style.display = 'block';
+    banner.textContent = badgeText;
+  } else {
+    banner.style.display = 'none';
+  }
+  // Цены на карточках дней
+  document.querySelectorAll('#step-days .option-card[data-day]').forEach(card => {
+    const day = card.dataset.day;
+    const base = DAY_PRICES[day];
+    const sub = card.querySelector('.opt-sub');
+    if (isArtist) {
+      sub.style.display = 'none';
+    } else if (disc > 0) {
+      const discounted = Math.round(base * (1 - disc));
+      sub.innerHTML = `<span style="text-decoration:line-through;color:#aaa;font-size:12px">${base} BYN</span> <b style="color:var(--forest)">${discounted} BYN</b>`;
+    } else {
+      sub.style.display = '';
+      sub.textContent = `${base} BYN`;
+    }
   });
   document.getElementById('price-days').style.display = 'none';
 }
@@ -968,10 +1012,44 @@ const TRANS_L = {transfer:'🚌 Солнечный бус',own:'🚗 Своя м
 const SRC_L   = {social:'📱 Соцсети/Telegram',friends:'👥 От знакомых',repeat:'🔄 Уже бывал(а)',other:'✏️ Другое'};
 const ACC_L   = {tent:'⛺ Своя палатка',hall:'🏠 Общий зал',none:'🚶 Без проживания'};
 
+// ── Система скидок ────────────────────────────────────────────────
+function getDiscount() {
+  const n = new Date();
+  const d = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  if (d >= new Date(2025,4,21) && d <= new Date(2025,4,23)) return 0.40;
+  if (d >= new Date(2025,4,24) && d <= new Date(2025,5,1))  return 0.30;
+  if (d >= new Date(2025,5,2)  && d <= new Date(2025,5,8))  return 0.25;
+  if (d >= new Date(2025,5,9)  && d <= new Date(2025,5,15)) return 0.20;
+  if (d >= new Date(2025,5,16) && d <= new Date(2025,5,22)) return 0.15;
+  if (d >= new Date(2025,5,23) && d <= new Date(2025,5,29)) return 0.10;
+  if (d >= new Date(2025,5,30) && d <= new Date(2025,6,1))  return 0.05;
+  return 0;
+}
+
+function discountBadgeText() {
+  const disc = getDiscount();
+  if (disc === 0) return '';
+  const pct = Math.round(disc * 100);
+  const n = new Date();
+  const d = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  let endDate = '';
+  if (d <= new Date(2025,4,23))  endDate = '23 мая';
+  else if (d <= new Date(2025,5,1))  endDate = '1 июня';
+  else if (d <= new Date(2025,5,8))  endDate = '8 июня';
+  else if (d <= new Date(2025,5,15)) endDate = '15 июня';
+  else if (d <= new Date(2025,5,22)) endDate = '22 июня';
+  else if (d <= new Date(2025,5,29)) endDate = '29 июня';
+  else endDate = '1 июля';
+  return `🎁 Скидка ${pct}% на оргвзнос — действует до ${endDate}`;
+}
+
 function calcTotal() {
   if (S.role==='volunteer' || S.role==='artist' || S.role==='master') return 0;
-  if (S.ticketType==='vip') return 430;
-  let t = S.days.reduce((s,d)=>s+DAY_PRICES[d],0);
+  const disc = getDiscount();
+  if (S.ticketType==='vip') {
+    return Math.round(VIP_DAYS_FULL * (1 - disc)) + VIP_ACC_FOOD;
+  }
+  let t = S.days.reduce((s,d) => s + Math.round(DAY_PRICES[d] * (1 - disc)), 0);
   if (S.accommodation!=='none') t += S.nights.length * (ACC_NIGHT[S.accommodation]||0);
   t += S.food.reduce((s,d)=>s+FOOD_PRICES[d],0);
   return t;
@@ -998,7 +1076,7 @@ function buildSummary() {
     if (S.nights.length) rows.push(['Ночи', S.nights.join(', ')]);
     rows.push(['Участие', '✅ Бесплатно']);
   } else if (S.ticketType==='vip') {
-    rows.push(['Оргвзнос', '⭐ VIP — 430 BYN']);
+    rows.push(['Оргвзнос', `⭐ VIP — ${calcTotal()} BYN`]);
     rows.push(['Проживание', '✅ Включено в VIP']);
     if (S.nights.length) rows.push(['Ночи', S.nights.join(', ')]);
     if (S.food.length) rows.push(['Питание', S.food.join(', ')]);
