@@ -1063,13 +1063,13 @@ const ACC_L   = {tent:'⛺ Своя палатка',hall:'🏠 Общий зал
 function getDiscount() {
   const n = new Date();
   const d = new Date(n.getFullYear(), n.getMonth(), n.getDate());
-  if (d >= new Date(2025,4,21) && d <= new Date(2025,4,23)) return 0.40;
-  if (d >= new Date(2025,4,24) && d <= new Date(2025,5,1))  return 0.30;
-  if (d >= new Date(2025,5,2)  && d <= new Date(2025,5,8))  return 0.25;
-  if (d >= new Date(2025,5,9)  && d <= new Date(2025,5,15)) return 0.20;
-  if (d >= new Date(2025,5,16) && d <= new Date(2025,5,22)) return 0.15;
-  if (d >= new Date(2025,5,23) && d <= new Date(2025,5,29)) return 0.10;
-  if (d >= new Date(2025,5,30) && d <= new Date(2025,6,1))  return 0.05;
+  if (d >= new Date(2026,4,21) && d <= new Date(2026,4,23)) return 0.40;
+  if (d >= new Date(2026,4,24) && d <= new Date(2026,5,1))  return 0.30;
+  if (d >= new Date(2026,5,2)  && d <= new Date(2026,5,8))  return 0.25;
+  if (d >= new Date(2026,5,9)  && d <= new Date(2026,5,15)) return 0.20;
+  if (d >= new Date(2026,5,16) && d <= new Date(2026,5,22)) return 0.15;
+  if (d >= new Date(2026,5,23) && d <= new Date(2026,5,29)) return 0.10;
+  if (d >= new Date(2026,5,30) && d <= new Date(2026,6,1))  return 0.05;
   return 0;
 }
 
@@ -1080,12 +1080,12 @@ function discountBadgeText() {
   const n = new Date();
   const d = new Date(n.getFullYear(), n.getMonth(), n.getDate());
   let endDate = '';
-  if (d <= new Date(2025,4,23))  endDate = '23 мая';
-  else if (d <= new Date(2025,5,1))  endDate = '1 июня';
-  else if (d <= new Date(2025,5,8))  endDate = '8 июня';
-  else if (d <= new Date(2025,5,15)) endDate = '15 июня';
-  else if (d <= new Date(2025,5,22)) endDate = '22 июня';
-  else if (d <= new Date(2025,5,29)) endDate = '29 июня';
+  if (d <= new Date(2026,4,23))  endDate = '23 мая';
+  else if (d <= new Date(2026,5,1))  endDate = '1 июня';
+  else if (d <= new Date(2026,5,8))  endDate = '8 июня';
+  else if (d <= new Date(2026,5,15)) endDate = '15 июня';
+  else if (d <= new Date(2026,5,22)) endDate = '22 июня';
+  else if (d <= new Date(2026,5,29)) endDate = '29 июня';
   else endDate = '1 июля';
   return `🎁 Скидка ${pct}% на оргвзнос — действует до ${endDate}`;
 }
