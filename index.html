@@ -274,28 +274,25 @@
 </div>
 
 <!-- 0. ОФЕРТА -->
-<div class="step active" id="step-oferta">
+<div class="step active" id="step-oferta" style="padding-bottom:130px;">
   <div class="step-title">Добро пожаловать 🌞</div>
-  <div class="step-desc">Перед регистрацией — пара слов о наших правилах</div>
-  <div style="background:white;border-radius:var(--radius);padding:16px;border:1px solid var(--border);font-size:14px;line-height:1.7;color:var(--text);margin-bottom:20px;overflow-y:auto;max-height:45vh;">
-    <b>Как попасть на «Солнечный круг» и ничего не испортить</b><br><br>
-    Друзья, давайте беречь друг друга и это место. У нас просто так:<br>
+  <div id="oferta-text" style="background:white;border-radius:var(--radius);padding:14px 16px;border:1px solid var(--border);font-size:13px;line-height:1.6;color:var(--text);overflow-y:auto;max-height:52vh;scroll-behavior:smooth;" ontouchstart="stopOfertaScroll()">
+    <b style="font-size:14px;">Как попасть на «Солнечный круг» и ничего не испортить</b><br><br>
+    Давайте беречь друг друга и это место:<br>
     — Без сигарет, алкоголя и всего запрещённого<br>
-    — С уважением к людям и тому, что нас окружает<br>
+    — С уважением к людям и к тому, что нас окружает<br>
     — Мирно, даже если захотелось поспорить<br><br>
-    ❤️ Если нарушим — попросим уйти, и деньги не вернём.<br><br>
-    Нажимая «Принимаю», вы доверяете нам свои имя, телефон и Telegram — только чтобы всё организовалось.<br><br>
-    <b>С деньгами так:</b><br>
-    — 14+ дней до старта — вернём всё<br>
-    — 5–13 дней — половину от оргвзноса<br>
-    — Меньше 5 дней — уже не получится<br><br>
+    ❤️ Если нарушим — попросим уйти, деньги не вернём.<br><br>
+    Нажимая «Принимаю», вы доверяете нам имя, телефон и Telegram — только чтобы всё организовалось.<br><br>
+    <b>Возврат оргсбора:</b><br>
+    — за 14+ дней — полный · за 5–13 дней — 50% · менее 5 дней — без возврата<br><br>
     «Солнечный круг» — встреча кооперативного участка ПК Светоч. Оплата оргсбора = вступление в кооператив.<br><br>
     Полная оферта: <a href="https://sunfest.by" target="_blank" style="color:var(--gold)">sunfest.by</a>
   </div>
-  <div style="display:flex;flex-direction:column;gap:10px;">
-    <button class="btn btn-next" style="flex:unset;width:100%" onclick="acceptOferta()">✅ Принимаю условия</button>
-    <button class="btn btn-back" style="width:100%" onclick="declineOferta()">❌ Не принимаю</button>
-  </div>
+</div>
+<div style="position:fixed;bottom:0;left:0;right:0;padding:12px 16px 24px;background:var(--cream);border-top:1px solid var(--border);display:none;" id="oferta-btns">
+  <button class="btn btn-next" style="width:100%;margin-bottom:8px;" onclick="acceptOferta()">✅ Принимаю условия</button>
+  <button class="btn btn-back" style="width:100%;" onclick="declineOferta()">❌ Не принимаю</button>
 </div>
 
 <!-- 1. РОЛЬ -->
@@ -747,6 +744,10 @@ function show(id) {
   document.querySelectorAll('.step').forEach(s=>s.classList.remove('active'));
   document.getElementById('step-'+id).classList.add('active');
   cur = id;
+  const ofertaBtns = document.getElementById('oferta-btns');
+  if (ofertaBtns) ofertaBtns.style.display = (id === 'oferta') ? 'block' : 'none';
+  stopOfertaScroll();
+  if (id === 'oferta') setTimeout(startOfertaScroll, 1500);
   const all=['oferta','role','master-info','ticket','days','acc','nights','voldates','food','name','phone','children','transport','transfer-times','source','summary'];
   const i = all.indexOf(id);
   document.getElementById('pFill').style.width = i<0?'100%': Math.round(i/(all.length-1)*100)+'%';
@@ -1196,11 +1197,36 @@ function skipPhone() {
 }
 
 // ── Oferta ───────────────────────────────────────────────────────
+let _ofertaScrollTimer = null;
+
+function startOfertaScroll() {
+  const el = document.getElementById('oferta-text');
+  if (!el) return;
+  el.scrollTop = 0;
+  let speed = 0.6; // px за тик
+  _ofertaScrollTimer = setInterval(() => {
+    el.scrollTop += speed;
+    // Остановиться у дна
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 2) {
+      stopOfertaScroll();
+    }
+  }, 30);
+}
+
+function stopOfertaScroll() {
+  if (_ofertaScrollTimer) {
+    clearInterval(_ofertaScrollTimer);
+    _ofertaScrollTimer = null;
+  }
+}
+
 function acceptOferta() {
+  stopOfertaScroll();
   hist.push('oferta');
   show('role');
 }
 function declineOferta() {
+  stopOfertaScroll();
   if (tg) tg.close();
   else show('oferta');
 }
