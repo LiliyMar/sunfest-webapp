@@ -386,6 +386,15 @@
   <div class="step-desc">Можно выбрать один или несколько</div>
   <div id="days-disc-banner" style="display:none;background:linear-gradient(135deg,#2e7d32,#388e3c);color:white;border-radius:var(--radius);padding:10px 14px;margin-bottom:14px;font-size:13px;font-weight:600;"></div>
   <div class="option-list">
+    <div class="option-card" id="alldays-card" onclick="pickAllDays()" style="border-color:var(--forest);background:linear-gradient(135deg,#f0f7f0,#e8f5e9);">
+      <div class="opt-icon">🌞</div>
+      <div class="opt-body">
+        <div class="opt-title" style="color:var(--forest);">Все 4 дня</div>
+        <div class="opt-sub" id="alldays-sub">250 BYN</div>
+      </div>
+      <div class="opt-check" id="alldays-check">✓</div>
+    </div>
+    <div style="text-align:center;font-size:12px;color:var(--muted);margin:4px 0;">— или выберите дни отдельно —</div>
     <div class="option-card" data-day="2 июля (чт)" data-price="50" onclick="toggleDay(this)">
       <div class="opt-icon">🌿</div>
       <div class="opt-body"><div class="opt-title">2 июля (чт)</div><div class="opt-sub">50 BYN</div></div>
@@ -698,7 +707,7 @@ if (tg) { tg.ready(); tg.expand(); }
 // ── State ──────────────────────────────────────────────────────────
 const S = {
   role:null, ticketType:null,
-  days:[], accommodation:null,
+  days:[], allDays:false, accommodation:null,
   nights:[], arrivalDate:'', departureDate:'',
   food:[], name:'', phone:'',
   children:null, transport:null, transferTimes:[], source:null,
@@ -706,8 +715,9 @@ const S = {
 };
 
 const DAY_PRICES  = {'2 июля (чт)':50,'3 июля (пт)':60,'4 июля (сб, Купалье)':90,'5 июля (вс)':70};
-const VIP_ACC_FOOD = 198; // проживание + питание все дни (фиксировано для VIP)
+const VIP_ACC_FOOD  = 198; // проживание + питание все дни (фиксировано для VIP)
 const VIP_DAYS_FULL = 270; // оргвзнос VIP без скидки (50+60+90+70)
+const ALL_DAYS_PRICE = 250; // все 4 дня по выгодной цене
 const FOOD_PRICES = {'2 июля (чт)':10,'3 июля (пт)':33,'4 июля (сб, Купалье)':33,'5 июля (вс)':23};
 const FOOD_NOTES  = {'2 июля (чт)':'только ужин','3 июля (пт)':'3 приёма','4 июля (сб, Купалье)':'3 приёма','5 июля (вс)':'завтрак + обед'};
 const ACC_NIGHT   = {tent:8, hall:15};
@@ -863,7 +873,24 @@ function updatePriceBanner(stepId, valId) {
 }
 
 // ── Days ──────────────────────────────────────────────────────────
+function pickAllDays() {
+  S.allDays = true;
+  S.days = [...DAYS_ORDER];
+  // Снимаем выделение с отдельных дней
+  document.querySelectorAll('#step-days .option-card[data-day]').forEach(c => c.classList.remove('selected'));
+  // Выделяем карточку «Все дни»
+  const card = document.getElementById('alldays-card');
+  card.classList.add('selected');
+  card.style.borderColor = 'var(--forest)';
+  document.getElementById('days-next').disabled = false;
+  updatePriceBanner('price-days','price-days-val');
+}
+
 function toggleDay(card) {
+  // Снимаем «Все дни»
+  S.allDays = false;
+  const allCard = document.getElementById('alldays-card');
+  allCard.classList.remove('selected');
   const d = card.dataset.day;
   const i = S.days.indexOf(d);
   if (i>-1) { S.days.splice(i,1); card.classList.remove('selected'); }
@@ -884,7 +911,19 @@ function updateDayPriceVisibility() {
   } else {
     banner.style.display = 'none';
   }
-  // Цены на карточках дней
+  // Цена карточки «Все дни»
+  const allSub = document.getElementById('alldays-sub');
+  if (allSub) {
+    if (isArtist) {
+      allSub.style.display = 'none';
+    } else if (disc > 0) {
+      const discounted = Math.round(ALL_DAYS_PRICE * (1 - disc));
+      allSub.innerHTML = `<span style="text-decoration:line-through;color:#aaa;font-size:12px">${ALL_DAYS_PRICE} BYN</span> <b style="color:var(--forest)">${discounted} BYN</b>`;
+    } else {
+      allSub.textContent = `${ALL_DAYS_PRICE} BYN`;
+    }
+  }
+  // Цены на карточках отдельных дней
   document.querySelectorAll('#step-days .option-card[data-day]').forEach(card => {
     const day = card.dataset.day;
     const base = DAY_PRICES[day];
@@ -1098,7 +1137,9 @@ function calcTotal() {
   if (S.ticketType==='vip') {
     return Math.round(VIP_DAYS_FULL * (1 - disc)) + VIP_ACC_FOOD;
   }
-  let t = S.days.reduce((s,d) => s + Math.round(DAY_PRICES[d] * (1 - disc)), 0);
+  let t = S.allDays
+    ? Math.round(ALL_DAYS_PRICE * (1 - disc))
+    : S.days.reduce((s,d) => s + Math.round(DAY_PRICES[d] * (1 - disc)), 0);
   if (S.accommodation!=='none') t += S.nights.length * (ACC_NIGHT[S.accommodation]||0);
   t += S.food.reduce((s,d)=>s+FOOD_PRICES[d],0);
   return t;
