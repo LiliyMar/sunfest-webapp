@@ -1215,7 +1215,9 @@ function buildSummary() {
 }
 
 function submit(action) {
-  const data = JSON.stringify({...S, action, total: calcTotal()});
+  const masterTotal = action === 'master_erip' ? 50 : 0;
+  const total = (S.role === 'master') ? masterTotal : calcTotal();
+  const data = JSON.stringify({...S, action, total});
   hist.push(cur);
   show('done');
   setTimeout(() => {
