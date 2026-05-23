@@ -420,6 +420,9 @@
     <span class="price-banner-lbl">💰 Итого сейчас:</span>
     <span class="price-banner-amt" id="price-days-val">0 BYN</span>
   </div>
+  <div id="disc-validity-days" style="display:none;font-size:12px;color:var(--muted);text-align:center;margin-top:10px;line-height:1.5;">
+    ⚠️ Скидка действует при оплате до <b id="disc-deadline-days"></b>
+  </div>
   <div class="nav">
     <button class="btn btn-back" onclick="goBack()">◀ Назад</button>
     <button class="btn btn-next" id="days-next" onclick="next()" disabled>Далее →</button>
@@ -678,6 +681,9 @@
   <div class="total-row">
     <div class="total-lbl">Итого к оплате:</div>
     <div class="total-amt" id="total-amt">0 BYN</div>
+  </div>
+  <div id="disc-validity-summary" style="display:none;font-size:12px;color:#b8660b;text-align:center;margin:6px 0 14px;line-height:1.5;">
+    ⚠️ Скидка действует при оплате до <b id="disc-deadline-summary"></b>
   </div>
   <div id="promo-section" style="display:none;margin-bottom:14px;">
     <div style="display:flex;gap:8px;align-items:stretch;">
@@ -939,6 +945,14 @@ function updateDayPriceVisibility() {
     }
   });
   document.getElementById('price-days').style.display = 'none';
+  // Подсказка о сроке скидки
+  const discNote = document.getElementById('disc-validity-days');
+  if (!isArtist && disc > 0) {
+    document.getElementById('disc-deadline-days').textContent = discountDeadline();
+    discNote.style.display = 'block';
+  } else {
+    discNote.style.display = 'none';
+  }
 }
 
 // ── Nights ────────────────────────────────────────────────────────
@@ -1114,21 +1128,23 @@ function getDiscount() {
   return 0;
 }
 
+function discountDeadline() {
+  const n = new Date();
+  const d = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  if (d <= new Date(2026,4,23))  return '23 мая';
+  if (d <= new Date(2026,5,1))   return '1 июня';
+  if (d <= new Date(2026,5,8))   return '8 июня';
+  if (d <= new Date(2026,5,15))  return '15 июня';
+  if (d <= new Date(2026,5,22))  return '22 июня';
+  if (d <= new Date(2026,5,29))  return '29 июня';
+  return '1 июля';
+}
+
 function discountBadgeText() {
   const disc = getDiscount();
   if (disc === 0) return '';
   const pct = Math.round(disc * 100);
-  const n = new Date();
-  const d = new Date(n.getFullYear(), n.getMonth(), n.getDate());
-  let endDate = '';
-  if (d <= new Date(2026,4,23))  endDate = '23 мая';
-  else if (d <= new Date(2026,5,1))  endDate = '1 июня';
-  else if (d <= new Date(2026,5,8))  endDate = '8 июня';
-  else if (d <= new Date(2026,5,15)) endDate = '15 июня';
-  else if (d <= new Date(2026,5,22)) endDate = '22 июня';
-  else if (d <= new Date(2026,5,29)) endDate = '29 июня';
-  else endDate = '1 июля';
-  return `🎁 Скидка ${pct}% на оргвзнос — действует до ${endDate}`;
+  return `🎁 Скидка ${pct}% на оргвзнос — действует до ${discountDeadline()}`;
 }
 
 function calcTotal() {
@@ -1193,6 +1209,16 @@ function buildSummary() {
   if (S.role==='volunteer' || S.role==='artist') { amtEl.style.fontSize='20px'; amtEl.textContent='Бесплатно'; }
   else if (S.role==='master') { amtEl.style.fontSize='16px'; amtEl.textContent='50 б.р. (оплата через ЕРИП)'; }
   else amtEl.textContent = tot+' BYN';
+
+  // Подсказка о сроке скидки на итоговом экране
+  const discSummaryNote = document.getElementById('disc-validity-summary');
+  const hasDiscount = getDiscount() > 0 && S.role !== 'volunteer' && S.role !== 'artist';
+  if (hasDiscount) {
+    document.getElementById('disc-deadline-summary').textContent = discountDeadline();
+    discSummaryNote.style.display = 'block';
+  } else {
+    discSummaryNote.style.display = 'none';
+  }
 
   // Promo code — only for regular participant with 2+ nights
   const promoSection = document.getElementById('promo-section');
