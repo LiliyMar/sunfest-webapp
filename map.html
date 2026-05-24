@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Карта праздника — Солнечный круг</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { height: 100%; background: #1e3320; }
+    #map { height: 100vh; }
+
+    /* Кнопка «Где я» */
+    #btn-locate {
+      position: fixed;
+      bottom: 28px;
+      right: 16px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: white;
+      border: none;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.35);
+      cursor: pointer;
+      font-size: 22px;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #btn-locate:active { transform: scale(0.93); }
+
+    /* Статус-плашка */
+    #status {
+      position: fixed;
+      bottom: 90px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.65);
+      color: white;
+      padding: 7px 18px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-family: -apple-system, 'Segoe UI', sans-serif;
+      z-index: 1000;
+      white-space: nowrap;
+      pointer-events: none;
+      transition: opacity 0.4s;
+    }
+    #status.hidden { opacity: 0; }
+
+    /* Прячем стандартное лого Leaflet */
+    .leaflet-control-attribution { display: none; }
+  </style>
+</head>
+<body>
+
+<div id="map"></div>
+<div id="status">📍 Определяем местоположение…</div>
+<button id="btn-locate" title="Моё место" onclick="centerOnUser()">📍</button>
+
+<script>
+const tg = window.Telegram?.WebApp;
+if (tg) { tg.ready(); tg.expand(); }
+
+// ── Границы карты (вычислены по точкам Бунгало и Скворечники) ─────
+const SW = [54.0706663, 27.7818364];
+const NE = [54.0724993, 27.79114];
+const CENTER = [54.071583, 27.786488];
+
+// ── Leaflet ────────────────────────────────────────────────────────
+const map = L.map('map', {
+  center: CENTER,
+  zoom: 17,
+  minZoom: 15,
+  maxZoom: 19,
+  zoomControl: true,
+  attributionControl: false,
+});
+
+// Спутниковая подложка — видна если выйти за край карты
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  opacity: 0.25,
+  maxZoom: 19,
+}).addTo(map);
+
+// Карта праздника поверх
+L.imageOverlay('map.png', [SW, NE], {
+  opacity: 1,
+  interactive: false,
+}).addTo(map);
+
+// ── Геолокация ────────────────────────────────────────────────────
+let userMarker = null;
+let accuracyCircle = null;
+let firstFix = true;
+
+const statusEl = document.getElementById('status');
+let hideTimer = null;
+
+function showStatus(text, autohide) {
+  statusEl.textContent = text;
+  statusEl.classList.remove('hidden');
+  clearTimeout(hideTimer);
+  if (autohide) hideTimer = setTimeout(() => statusEl.classList.add('hidden'), 3000);
+}
+
+function onPosition(pos) {
+  const lat = pos.coords.latitude;
+  const lng = pos.coords.longitude;
+  const acc = Math.round(pos.coords.accuracy);
+
+  if (!userMarker) {
+    // Синяя точка «вы здесь»
+    userMarker = L.circleMarker([lat, lng], {
+      radius: 9,
+      fillColor: '#4285f4',
+      fillOpacity: 1,
+      color: 'white',
+      weight: 3,
+      zIndexOffset: 1000,
+    }).addTo(map).bindPopup('Вы здесь');
+
+    // Круг точности
+    accuracyCircle = L.circle([lat, lng], {
+      radius: acc,
+      color: '#4285f4',
+      fillColor: '#4285f4',
+      fillOpacity: 0.08,
+      weight: 1,
+    }).addTo(map);
+  } else {
+    userMarker.setLatLng([lat, lng]);
+    accuracyCircle.setLatLng([lat, lng]).setRadius(acc);
+  }
+
+  if (firstFix) {
+    firstFix = false;
+    map.setView([lat, lng], 18);
+  }
+
+  showStatus(`📍 Точность: ±${acc} м`, true);
+}
+
+function onError(err) {
+  const msgs = {
+    1: '🔒 Нет доступа к геолокации',
+    2: '⚠️ Геолокация недоступна',
+    3: '⏱ Таймаут геолокации',
+  };
+  showStatus(msgs[err.code] || '⚠️ Ошибка геолокации', false);
+}
+
+function centerOnUser() {
+  if (userMarker) {
+    map.setView(userMarker.getLatLng(), 18);
+    showStatus('📍 Центрировано на вас', true);
+  } else {
+    showStatus('⏳ Геолокация ещё не готова…', true);
+  }
+}
+
+if (navigator.geolocation) {
+  navigator.geolocation.watchPosition(onPosition, onError, {
+    enableHighAccuracy: true,
+    maximumAge: 3000,
+    timeout: 10000,
+  });
+} else {
+  showStatus('⚠️ Геолокация не поддерживается', false);
+}
+</script>
+</body>
+</html>
