@@ -576,6 +576,58 @@
   <div class="nav"><button class="btn btn-back" onclick="goBack()">◀ Назад</button></div>
 </div>
 
+<!-- 9b. ВОЗРАСТ ДЕТЕЙ -->
+<div class="step" id="step-child-ages">
+  <div class="step-title">Дети — возраст 👧</div>
+  <div class="step-desc">Укажите количество детей в каждой группе</div>
+  <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:18px;">
+
+    <div style="border:2px solid var(--border);border-radius:var(--radius);padding:14px 16px;background:white;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:15px;font-weight:600;">👶 До 8 лет</div>
+        <div style="font-size:13px;color:#2e7d32;margin-top:2px;">Бесплатно</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <button onclick="changeChild('under8',-1)" style="width:32px;height:32px;border-radius:50%;border:2px solid var(--border);background:white;font-size:20px;line-height:1;cursor:pointer;color:var(--muted);">−</button>
+        <span id="cnt-under8" style="font-size:18px;font-weight:700;min-width:18px;text-align:center;">0</span>
+        <button onclick="changeChild('under8',1)" style="width:32px;height:32px;border-radius:50%;border:2px solid var(--gold);background:var(--gold);font-size:20px;line-height:1;cursor:pointer;color:white;">+</button>
+      </div>
+    </div>
+
+    <div style="border:2px solid var(--border);border-radius:var(--radius);padding:14px 16px;background:white;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:15px;font-weight:600;">🧒 9–13 лет</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:2px;">10 BYN · скидки не применяются</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <button onclick="changeChild('age9to13',-1)" style="width:32px;height:32px;border-radius:50%;border:2px solid var(--border);background:white;font-size:20px;line-height:1;cursor:pointer;color:var(--muted);">−</button>
+        <span id="cnt-age9to13" style="font-size:18px;font-weight:700;min-width:18px;text-align:center;">0</span>
+        <button onclick="changeChild('age9to13',1)" style="width:32px;height:32px;border-radius:50%;border:2px solid var(--gold);background:var(--gold);font-size:20px;line-height:1;cursor:pointer;color:white;">+</button>
+      </div>
+    </div>
+
+    <div style="border:2px solid var(--border);border-radius:var(--radius);padding:14px 16px;background:white;display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:15px;font-weight:600;">🧑 14–17 лет</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:2px;">50% оргвзноса взрослого · скидки не применяются</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <button onclick="changeChild('age14to17',-1)" style="width:32px;height:32px;border-radius:50%;border:2px solid var(--border);background:white;font-size:20px;line-height:1;cursor:pointer;color:var(--muted);">−</button>
+        <span id="cnt-age14to17" style="font-size:18px;font-weight:700;min-width:18px;text-align:center;">0</span>
+        <button onclick="changeChild('age14to17',1)" style="width:32px;height:32px;border-radius:50%;border:2px solid var(--gold);background:var(--gold);font-size:20px;line-height:1;cursor:pointer;color:white;">+</button>
+      </div>
+    </div>
+
+  </div>
+  <div style="background:#e8f5e9;border:1px solid #81c784;border-radius:var(--radius);padding:12px 14px;font-size:13px;color:#2e7d32;margin-bottom:20px;line-height:1.6;">
+    🛏 <b>Проживание:</b> отдельная кровать — как у взрослого. На одной кровати с мамой — бесплатно.
+  </div>
+  <div class="nav">
+    <button class="btn btn-back" onclick="goBack()">◀ Назад</button>
+    <button class="btn btn-next" id="child-ages-next" onclick="next()" disabled>Далее →</button>
+  </div>
+</div>
+
 <!-- 10. ТРАНСПОРТ -->
 <div class="step" id="step-transport">
   <div class="step-title">Транспорт</div>
@@ -719,7 +771,8 @@ const S = {
   days:[], allDays:false, accommodation:null,
   nights:[], arrivalDate:'', departureDate:'',
   food:[], name:'', phone:'',
-  children:null, transport:null, transferTimes:[], source:null,
+  children:null, childrenData:{under8:0, age9to13:0, age14to17:0},
+  transport:null, transferTimes:[], source:null,
   promoCode:'',
 };
 
@@ -751,7 +804,8 @@ function afterStep(from) {
     case 'food':    return 'name';
     case 'name':    return 'phone';
     case 'phone':   return 'children';
-    case 'children':return 'transport';
+    case 'children':return (S.children==='yes' && S.role==='participant') ? 'child-ages' : 'transport';
+    case 'child-ages': return 'transport';
     case 'transport':return S.transport==='transfer' ? 'transfer-times' : 'source';
     case 'transfer-times': return 'source';
     case 'source':  return 'summary';
@@ -767,7 +821,7 @@ function show(id) {
   if (ofertaBtns) ofertaBtns.style.display = (id === 'oferta') ? 'block' : 'none';
   stopOfertaScroll();
   if (id === 'oferta') setTimeout(startOfertaScroll, 1500);
-  const all=['oferta','role','master-info','ticket','days','acc','nights','voldates','food','name','phone','children','transport','transfer-times','source','summary'];
+  const all=['oferta','role','master-info','ticket','days','acc','nights','voldates','food','name','phone','children','child-ages','transport','transfer-times','source','summary'];
   const i = all.indexOf(id);
   document.getElementById('pFill').style.width = i<0?'100%': Math.round(i/(all.length-1)*100)+'%';
   window.scrollTo(0,0);
@@ -824,6 +878,14 @@ function pick(key, card) {
   step.querySelectorAll('.option-card').forEach(c=>c.classList.remove('selected'));
   card.classList.add('selected');
   setTimeout(next, 180);
+}
+
+// ── Дети — счётчик ───────────────────────────────────────────────
+function changeChild(group, delta) {
+  S.childrenData[group] = Math.max(0, S.childrenData[group] + delta);
+  document.getElementById('cnt-' + group).textContent = S.childrenData[group];
+  const total = S.childrenData.under8 + S.childrenData.age9to13 + S.childrenData.age14to17;
+  document.getElementById('child-ages-next').disabled = total === 0;
 }
 
 // ── Инициализация шага билета (VIP цена + скидка) ────────────────
@@ -1153,14 +1215,29 @@ function discountBadgeText() {
 function calcTotal() {
   if (S.role==='volunteer' || S.role==='artist' || S.role==='master') return 0;
   const disc = getDiscount();
+
+  // Базовый оргвзнос взрослого без скидки (для расчёта 50% детям 14–17)
+  const baseOrgFee = S.ticketType==='vip' ? VIP_DAYS_FULL
+    : S.allDays ? ALL_DAYS_PRICE
+    : S.days.reduce((s,d) => s + (DAY_PRICES[d]||0), 0);
+
+  let t;
   if (S.ticketType==='vip') {
-    return Math.round(VIP_DAYS_FULL * (1 - disc)) + VIP_ACC_FOOD;
+    t = Math.round(VIP_DAYS_FULL * (1 - disc)) + VIP_ACC_FOOD;
+  } else {
+    t = S.allDays
+      ? Math.round(ALL_DAYS_PRICE * (1 - disc))
+      : S.days.reduce((s,d) => s + Math.round(DAY_PRICES[d] * (1 - disc)), 0);
+    if (S.accommodation!=='none') t += S.nights.length * (ACC_NIGHT[S.accommodation]||0);
+    t += S.food.reduce((s,d)=>s+FOOD_PRICES[d],0);
   }
-  let t = S.allDays
-    ? Math.round(ALL_DAYS_PRICE * (1 - disc))
-    : S.days.reduce((s,d) => s + Math.round(DAY_PRICES[d] * (1 - disc)), 0);
-  if (S.accommodation!=='none') t += S.nights.length * (ACC_NIGHT[S.accommodation]||0);
-  t += S.food.reduce((s,d)=>s+FOOD_PRICES[d],0);
+
+  // Детские взносы (только для участников)
+  if (S.children==='yes') {
+    t += S.childrenData.age9to13 * 10;
+    t += S.childrenData.age14to17 * Math.round(baseOrgFee * 0.5);
+  }
+
   return t;
 }
 
@@ -1197,7 +1274,16 @@ function buildSummary() {
   }
   rows.push(['Имя', S.name]);
   rows.push(['Телефон', S.phone||'не указан']);
-  rows.push(['Дети', S.children==='yes'?'Да':'Нет']);
+  if (S.children==='yes') {
+    const cd = S.childrenData;
+    const parts = [];
+    if (cd.under8 > 0)    parts.push(`${cd.under8} × до 8 лет (бесплатно)`);
+    if (cd.age9to13 > 0)  parts.push(`${cd.age9to13} × 9–13 лет (10 BYN)`);
+    if (cd.age14to17 > 0) parts.push(`${cd.age14to17} × 14–17 лет (50%)`);
+    rows.push(['Дети', parts.length ? parts.join('; ') : 'Да']);
+  } else {
+    rows.push(['Дети', 'Нет']);
+  }
   rows.push(['Транспорт', TRANS_L[S.transport]||'']);
   if (S.transport==='transfer' && S.transferTimes.length)
     rows.push(['Рейсы', S.transferTimes.join(', ')]);
