@@ -7,89 +7,123 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body { height: 100%; background: #1e3320; }
-    #map { height: 100vh; }
-
-    /* Кнопка «Где я» */
+    * { margin:0; padding:0; box-sizing:border-box; }
+    html, body { height:100%; background:#1e3320; }
+    #map { height:100vh; }
     #btn-locate {
-      position: fixed;
-      bottom: 28px;
-      right: 16px;
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background: white;
-      border: none;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.35);
-      cursor: pointer;
-      font-size: 22px;
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      position:fixed; bottom:28px; right:16px;
+      width:48px; height:48px; border-radius:50%;
+      background:white; border:none;
+      box-shadow:0 3px 10px rgba(0,0,0,0.35);
+      cursor:pointer; font-size:22px; z-index:1000;
+      display:flex; align-items:center; justify-content:center;
     }
-    #btn-locate:active { transform: scale(0.93); }
-
-    /* Статус-плашка */
+    #btn-locate:active { transform:scale(0.93); }
     #status {
-      position: fixed;
-      bottom: 90px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,0.65);
-      color: white;
-      padding: 7px 18px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-family: -apple-system, 'Segoe UI', sans-serif;
-      z-index: 1000;
-      white-space: nowrap;
-      pointer-events: none;
-      transition: opacity 0.4s;
+      position:fixed; bottom:90px; left:50%; transform:translateX(-50%);
+      background:rgba(0,0,0,0.65); color:white;
+      padding:7px 18px; border-radius:20px;
+      font-size:13px; font-family:-apple-system,'Segoe UI',sans-serif;
+      z-index:1000; white-space:nowrap; pointer-events:none;
+      transition:opacity 0.4s;
     }
-    #status.hidden { opacity: 0; }
-
-    /* Прячем стандартное лого Leaflet */
-    .leaflet-control-attribution { display: none; }
+    #status.hidden { opacity:0; }
+    .leaflet-control-attribution { display:none; }
   </style>
 </head>
 <body>
 
 <div id="map"></div>
 <div id="status">📍 Определяем местоположение…</div>
-<button id="btn-locate" title="Моё место" onclick="centerOnUser()">📍</button>
+<button id="btn-locate" onclick="centerOnUser()">📍</button>
 
 <script>
+// ── Telegram ──────────────────────────────────────────────────────
 const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); }
 
-// ── Границы карты (вычислены по точкам Бунгало и Скворечники) ─────
-const SW = [54.0706663, 27.7818364];
-const NE = [54.0724993, 27.79114];
-const CENTER = [54.071583, 27.786488];
+// ── Leaflet.ImageOverlay.Rotated (встроен) ────────────────────────
+// Автор: Ivan Sanchez Ortega, MIT License
+// https://gitlab.com/IvanSanchez/Leaflet.ImageOverlay.Rotated
+L.ImageOverlay.Rotated = L.ImageOverlay.extend({
+  initialize: function(url, tl, tr, bl, opts) {
+    this._url = url;
+    this._topLeft    = L.latLng(tl);
+    this._topRight   = L.latLng(tr);
+    this._bottomLeft = L.latLng(bl);
+    L.setOptions(this, opts);
+  },
+  onAdd: function(map) {
+    if (!this._image) { this._initImage(); }
+    if (this.options.opacity < 1) { this._updateOpacity(); }
+    map.on('zoom viewreset zoomend moveend', this._reset, this);
+    this.getPane().appendChild(this._image);
+    this._reset();
+  },
+  onRemove: function(map) {
+    map.off('zoom viewreset zoomend moveend', this._reset, this);
+    L.DomUtil.remove(this._image);
+  },
+  _initImage: function() {
+    var img = this._rawImage = L.DomUtil.create('img');
+    img.style.position    = 'absolute';
+    img.style.transformOrigin = '0 0';
+    if (this.options.crossOrigin) img.crossOrigin = '';
+    img.src = this._url;
+    var div = this._image = L.DomUtil.create('div',
+      'leaflet-image-layer ' + (this._zoomAnimated ? 'leaflet-zoom-animated' : ''));
+    div.appendChild(img);
+    img.onload  = this._reset.bind(this);
+    img.onerror = function() { console.warn('Ошибка загрузки карты'); };
+  },
+  _reset: function() {
+    if (!this._rawImage || !this._map || !this._rawImage.naturalWidth) return;
+    var tl = this._map.latLngToLayerPoint(this._topLeft);
+    var tr = this._map.latLngToLayerPoint(this._topRight);
+    var bl = this._map.latLngToLayerPoint(this._bottomLeft);
+    var W  = this._rawImage.naturalWidth;
+    var H  = this._rawImage.naturalHeight;
+    var a  = (tr.x - tl.x) / W,  b = (tr.y - tl.y) / W;
+    var c  = (bl.x - tl.x) / H,  d = (bl.y - tl.y) / H;
+    this._rawImage.style.width  = W + 'px';
+    this._rawImage.style.height = H + 'px';
+    this._rawImage.style.transform = 'matrix(' + [a,b,c,d,tl.x,tl.y] + ')';
+    L.DomUtil.setPosition(this._image, {x:0, y:0});
+  },
+});
+L.imageOverlay.rotated = function(url, tl, tr, bl, opts) {
+  return new L.ImageOverlay.Rotated(url, tl, tr, bl, opts);
+};
 
-// ── Leaflet ────────────────────────────────────────────────────────
+// ── Координаты углов карты ────────────────────────────────────────
+// Калибровка по двум точкам:
+//   Бунгало (top-right area)     pixel(649,117)  → GPS(54.072371, 27.788253)
+//   Скворечники (bottom area)    pixel(198,1488) → GPS(54.070868, 27.783794)
+// Поворот карты: «верх» = 42° от севера (CCW), «низ» ≈ ЮЗ (запад)
+// Масштаб: 0.2327 м/пиксель
+const TL = [54.0734595, 27.7868108];  // top-left     (0, 0)
+const TR = [54.0721452, 27.7893057];  // top-right    (941, 0)
+const BL = [54.0708583, 27.7828311];  // bottom-left  (0, 1672)
+const CENTER = [54.0715024, 27.786067];
+
+// ── Leaflet ───────────────────────────────────────────────────────
 const map = L.map('map', {
   center: CENTER,
   zoom: 17,
   minZoom: 15,
-  maxZoom: 19,
+  maxZoom: 20,
   zoomControl: true,
   attributionControl: false,
 });
 
-// Спутниковая подложка — видна если выйти за край карты
+// Фоновая подложка (слегка видна за пределами карты)
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-  opacity: 0.25,
-  maxZoom: 19,
+  opacity: 0.2,
+  maxZoom: 20,
 }).addTo(map);
 
-// Карта праздника поверх
-L.imageOverlay('map.png', [SW, NE], {
-  opacity: 1,
-  interactive: false,
-}).addTo(map);
+// Карта праздника — повёрнутый оверлей
+L.imageOverlay.rotated('map.png', TL, TR, BL, { opacity: 1 }).addTo(map);
 
 // ── Геолокация ────────────────────────────────────────────────────
 let userMarker = null;
@@ -112,7 +146,6 @@ function onPosition(pos) {
   const acc = Math.round(pos.coords.accuracy);
 
   if (!userMarker) {
-    // Синяя точка «вы здесь»
     userMarker = L.circleMarker([lat, lng], {
       radius: 9,
       fillColor: '#4285f4',
@@ -121,13 +154,11 @@ function onPosition(pos) {
       weight: 3,
       zIndexOffset: 1000,
     }).addTo(map).bindPopup('Вы здесь');
-
-    // Круг точности
     accuracyCircle = L.circle([lat, lng], {
       radius: acc,
       color: '#4285f4',
       fillColor: '#4285f4',
-      fillOpacity: 0.08,
+      fillOpacity: 0.1,
       weight: 1,
     }).addTo(map);
   } else {
@@ -140,15 +171,11 @@ function onPosition(pos) {
     map.setView([lat, lng], 18);
   }
 
-  showStatus(`📍 Точность: ±${acc} м`, true);
+  showStatus('📍 Точность: ±' + acc + ' м', true);
 }
 
 function onError(err) {
-  const msgs = {
-    1: '🔒 Нет доступа к геолокации',
-    2: '⚠️ Геолокация недоступна',
-    3: '⏱ Таймаут геолокации',
-  };
+  const msgs = { 1:'🔒 Нет доступа к геолокации', 2:'⚠️ Геолокация недоступна', 3:'⏱ Таймаут' };
   showStatus(msgs[err.code] || '⚠️ Ошибка геолокации', false);
 }
 
