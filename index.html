@@ -959,7 +959,13 @@ function updatePriceBanner(stepId, valId) {
   const tot = calcTotal();
   if (tot > 0) {
     banner.style.display = 'flex';
-    document.getElementById(valId).textContent = tot + ' BYN';
+    const nd = calcTotalNoDisc();
+    const el = document.getElementById(valId);
+    if (nd > tot) {
+      el.innerHTML = `<s style="opacity:0.45;font-size:12px">${nd}</s> ${tot} BYN`;
+    } else {
+      el.textContent = tot + ' BYN';
+    }
   } else {
     banner.style.display = 'none';
   }
@@ -1339,12 +1345,12 @@ function buildSummary() {
   ).join('');
 
   const tot = calcTotal();
-  const disc = getDiscount();
-  const noDisc = (disc > 0 && S.role==='participant') ? calcTotalNoDisc() : 0;
+  const noDisc = calcTotalNoDisc();
+  const hasStrike = noDisc > tot;
   const amtEl = document.getElementById('total-amt');
   if (S.role==='volunteer' || S.role==='artist') { amtEl.style.fontSize='20px'; amtEl.innerHTML='Бесплатно'; }
   else if (S.role==='master') { amtEl.style.fontSize='16px'; amtEl.innerHTML='50 б.р. (оплата через ЕРИП)'; }
-  else if (noDisc > tot) amtEl.innerHTML = `<span class="price-old">${noDisc} BYN</span>${tot} BYN`;
+  else if (hasStrike) amtEl.innerHTML = `<span class="price-old">${noDisc} BYN</span>${tot} BYN`;
   else amtEl.innerHTML = tot+' BYN';
 
   // Подсказка о сроке скидки на итоговом экране
@@ -1369,7 +1375,7 @@ function buildSummary() {
     po.innerHTML += `<button class="pay-btn pay-online" onclick="submit('master_erip')">📱 Оплатил через ЕРИП</button>`;
     po.innerHTML += `<button class="pay-btn pay-onsite" onclick="submit('master_referral')">👥 Участвую по реферальной программе</button>`;
   } else if (S.role!=='volunteer' && S.role!=='artist' && tot>0) {
-    const priceTag = noDisc > tot ? `<s style="opacity:0.5">${noDisc}</s> ${tot}` : tot;
+    const priceTag = hasStrike ? `<s style="opacity:0.5">${noDisc}</s> ${tot}` : tot;
     po.innerHTML += `<button class="pay-btn pay-online" onclick="submit('pay')">💳 Оплатить онлайн (${priceTag} BYN)</button>`;
     po.innerHTML += `<button class="pay-btn pay-onsite" onclick="submit('pay_at_fest')">🎪 Оплачу на месте</button>`;
   } else {
