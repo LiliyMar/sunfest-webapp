@@ -1441,21 +1441,24 @@ function submit(action) {
   show('done');
   setTimeout(() => {
     if (tg) { try { tg.sendData(data); } catch(e) {} }
-    // Страховка: если мини-апп не закрылся — sendData не сработал
-    // Показываем успех и кнопку закрыть
+    // Если мини-апп не закрылся — sendData не сработал (открыт не через кнопку внизу)
     setTimeout(() => {
+      // Сохраняем данные в localStorage — при следующем открытии через правильную кнопку отправятся сами
+      try { localStorage.setItem('sk_pending_reg', JSON.stringify({data, ts: Date.now()})); } catch(e) {}
       const wrap = document.querySelector('#step-done .done-wrap');
       if (!wrap) return;
       wrap.innerHTML = `
-        <div class="done-icon">✅</div>
-        <div class="done-title">Заявка отправлена!</div>
+        <div class="done-icon">💾</div>
+        <div class="done-title">Данные сохранены</div>
         <div class="done-text" style="margin-top:10px;font-size:15px;color:#7a6a55;line-height:1.6">
-          Закройте это окно и вернитесь в чат —<br>бот пришлёт подтверждение.
+          Закройте это окно и нажмите кнопку<br>
+          <b>«📱 Зарегистрироваться»</b> внизу чата.<br>
+          Заявка отправится автоматически.
         </div>
         <button onclick="if(window.Telegram?.WebApp)window.Telegram.WebApp.close()"
           style="margin-top:28px;padding:14px 36px;background:#1e3320;color:white;
                  border:none;border-radius:12px;font-size:16px;cursor:pointer;font-weight:600">
-          Закрыть ✕
+          Закрыть →
         </button>`;
     }, 1500);
   }, 400);
@@ -1568,6 +1571,44 @@ function showFaq() {
   hist.push(cur);
   show('faq');
 }
+
+// ── Pending registration (из localStorage) ──────────────────────────
+(function checkPendingReg() {
+  try {
+    const raw = localStorage.getItem('sk_pending_reg');
+    if (!raw || !tg) return;
+    const saved = JSON.parse(raw);
+    if (!saved || !saved.data || !saved.ts) return;
+    if (Date.now() - saved.ts > 30 * 60 * 1000) { // истёк 30 минут
+      localStorage.removeItem('sk_pending_reg');
+      return;
+    }
+    // Есть незавершённая регистрация — сразу пробуем отправить
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    document.getElementById('step-done').classList.add('active');
+    localStorage.removeItem('sk_pending_reg');
+    setTimeout(() => {
+      try { tg.sendData(saved.data); } catch(e) {}
+      setTimeout(() => {
+        // Если всё ещё открыт — показываем кнопку закрыть
+        const wrap = document.querySelector('#step-done .done-wrap');
+        if (!wrap) return;
+        wrap.innerHTML = `
+          <div class="done-icon">✅</div>
+          <div class="done-title">Заявка отправлена!</div>
+          <div class="done-text" style="margin-top:10px;font-size:15px;color:#7a6a55;line-height:1.6">
+            Вернитесь в чат — бот пришлёт подтверждение.
+          </div>
+          <button onclick="if(window.Telegram?.WebApp)window.Telegram.WebApp.close()"
+            style="margin-top:28px;padding:14px 36px;background:#1e3320;color:white;
+                   border:none;border-radius:12px;font-size:16px;cursor:pointer;font-weight:600">
+            Закрыть ✕
+          </button>`;
+      }, 1500);
+    }, 400);
+    return; // не показываем welcome
+  } catch(e) {}
+})();
 
 // ── Start ─────────────────────────────────────────────────────────
 show('welcome');
