@@ -1441,6 +1441,23 @@ function submit(action) {
   show('done');
   setTimeout(() => {
     if (tg) { try { tg.sendData(data); } catch(e) {} }
+    // Страховка: если мини-апп не закрылся — sendData не сработал
+    // Показываем успех и кнопку закрыть
+    setTimeout(() => {
+      const wrap = document.querySelector('#step-done .done-wrap');
+      if (!wrap) return;
+      wrap.innerHTML = `
+        <div class="done-icon">✅</div>
+        <div class="done-title">Заявка отправлена!</div>
+        <div class="done-text" style="margin-top:10px;font-size:15px;color:#7a6a55;line-height:1.6">
+          Закройте это окно и вернитесь в чат —<br>бот пришлёт подтверждение.
+        </div>
+        <button onclick="if(window.Telegram?.WebApp)window.Telegram.WebApp.close()"
+          style="margin-top:28px;padding:14px 36px;background:#1e3320;color:white;
+                 border:none;border-radius:12px;font-size:16px;cursor:pointer;font-weight:600">
+          Закрыть ✕
+        </button>`;
+    }, 1500);
   }, 400);
 }
 
