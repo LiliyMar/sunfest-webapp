@@ -874,8 +874,8 @@ function afterStep(from) {
     case 'voldates':return 'food';
     case 'food':    return 'name';
     case 'name':    return 'phone';
-    case 'phone':   return 'children';
-    case 'children':return (S.children==='yes' && (S.role==='participant' || S.role==='master')) ? 'child-ages' : 'transport';
+    case 'phone':   return S.role==='master' ? 'transport' : 'children';
+    case 'children':return (S.children==='yes' && S.role==='participant') ? 'child-ages' : 'transport';
     case 'child-ages': return 'transport';
     case 'transport':return S.transport==='transfer' ? 'transfer-times' : 'source';
     case 'transfer-times': return 'source';
@@ -1427,7 +1427,7 @@ function buildSummary() {
   } else if (S.role!=='volunteer' && S.role!=='artist' && tot>0) {
     const priceTag = hasStrike ? `<s style="opacity:0.5">${noDisc}</s> ${tot}` : tot;
     po.innerHTML += `<button class="pay-btn pay-online" onclick="submit('pay')">💳 Оплатить онлайн (${priceTag} BYN)</button>`;
-    po.innerHTML += `<button class="pay-btn pay-onsite" onclick="submit('pay_at_fest')">🎪 Оплачу на месте</button>`;
+    po.innerHTML += `<button class="pay-btn pay-onsite" onclick="submit('pay_at_fest')">🎪 Оплачу на месте (${noDisc} BYN)</button>`;
   } else {
     po.innerHTML += `<button class="pay-btn pay-online" onclick="submit('pay_at_fest')">✅ Подтвердить регистрацию</button>`;
   }
