@@ -246,6 +246,7 @@
     }
     .total-lbl { font-size:16px; font-weight:700; color:var(--forest); }
     .total-amt { font-size:26px; font-weight:800; color:var(--gold); }
+    .price-old { text-decoration:line-through; opacity:0.5; font-size:17px; font-weight:500; margin-right:6px; }
 
     .pay-opts { display:flex; flex-direction:column; gap:10px; }
     .pay-btn {
@@ -804,7 +805,7 @@ function afterStep(from) {
     case 'food':    return 'name';
     case 'name':    return 'phone';
     case 'phone':   return 'children';
-    case 'children':return (S.children==='yes' && S.role==='participant') ? 'child-ages' : 'transport';
+    case 'children':return (S.children==='yes' && (S.role==='participant' || S.role==='master')) ? 'child-ages' : 'transport';
     case 'child-ages': return 'transport';
     case 'transport':return S.transport==='transfer' ? 'transfer-times' : 'source';
     case 'transfer-times': return 'source';
@@ -1241,6 +1242,26 @@ function calcTotal() {
   return t;
 }
 
+function calcTotalNoDisc() {
+  if (S.role==='volunteer' || S.role==='artist' || S.role==='master') return 0;
+  const baseOrgFee = S.ticketType==='vip' ? VIP_DAYS_FULL
+    : S.allDays ? ALL_DAYS_PRICE
+    : S.days.reduce((s,d) => s + (DAY_PRICES[d]||0), 0);
+  let t;
+  if (S.ticketType==='vip') {
+    t = VIP_DAYS_FULL + VIP_ACC_FOOD;
+  } else {
+    t = S.allDays ? ALL_DAYS_PRICE : S.days.reduce((s,d) => s + (DAY_PRICES[d]||0), 0);
+    if (S.accommodation!=='none') t += S.nights.length * (ACC_NIGHT[S.accommodation]||0);
+    t += S.food.reduce((s,d)=>s+FOOD_PRICES[d],0);
+  }
+  if (S.children==='yes') {
+    t += S.childrenData.age9to13 * 10;
+    t += S.childrenData.age14to17 * Math.round(baseOrgFee * 0.5);
+  }
+  return t;
+}
+
 function buildSummary() {
   const rows = [];
   rows.push(['Роль', ROLE_L[S.role]]);
@@ -1294,10 +1315,13 @@ function buildSummary() {
   ).join('');
 
   const tot = calcTotal();
+  const disc = getDiscount();
+  const noDisc = (disc > 0 && S.role==='participant') ? calcTotalNoDisc() : 0;
   const amtEl = document.getElementById('total-amt');
-  if (S.role==='volunteer' || S.role==='artist') { amtEl.style.fontSize='20px'; amtEl.textContent='Бесплатно'; }
-  else if (S.role==='master') { amtEl.style.fontSize='16px'; amtEl.textContent='50 б.р. (оплата через ЕРИП)'; }
-  else amtEl.textContent = tot+' BYN';
+  if (S.role==='volunteer' || S.role==='artist') { amtEl.style.fontSize='20px'; amtEl.innerHTML='Бесплатно'; }
+  else if (S.role==='master') { amtEl.style.fontSize='16px'; amtEl.innerHTML='50 б.р. (оплата через ЕРИП)'; }
+  else if (noDisc > tot) amtEl.innerHTML = `<span class="price-old">${noDisc} BYN</span>${tot} BYN`;
+  else amtEl.innerHTML = tot+' BYN';
 
   // Подсказка о сроке скидки на итоговом экране
   const discSummaryNote = document.getElementById('disc-validity-summary');
@@ -1321,7 +1345,8 @@ function buildSummary() {
     po.innerHTML += `<button class="pay-btn pay-online" onclick="submit('master_erip')">📱 Оплатил через ЕРИП</button>`;
     po.innerHTML += `<button class="pay-btn pay-onsite" onclick="submit('master_referral')">👥 Участвую по реферальной программе</button>`;
   } else if (S.role!=='volunteer' && S.role!=='artist' && tot>0) {
-    po.innerHTML += `<button class="pay-btn pay-online" onclick="submit('pay')">💳 Оплатить онлайн (${tot} BYN)</button>`;
+    const priceTag = noDisc > tot ? `<s style="opacity:0.5">${noDisc}</s> ${tot}` : tot;
+    po.innerHTML += `<button class="pay-btn pay-online" onclick="submit('pay')">💳 Оплатить онлайн (${priceTag} BYN)</button>`;
     po.innerHTML += `<button class="pay-btn pay-onsite" onclick="submit('pay_at_fest')">🎪 Оплачу на месте</button>`;
   } else {
     po.innerHTML += `<button class="pay-btn pay-online" onclick="submit('pay_at_fest')">✅ Подтвердить регистрацию</button>`;
