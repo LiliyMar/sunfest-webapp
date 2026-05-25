@@ -100,7 +100,7 @@
 
 <div id="scene">
   <div id="layer">
-    <img id="map-img" src="map.png?v=2" draggable="false">
+    <img id="map-img" src="map.png?v=3" draggable="false">
   </div>
   <div id="ring"></div>
   <div id="dot"></div>
@@ -115,17 +115,16 @@ const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); }
 
 // ── Константы ──────────────────────────────────────────────────────
-const IMG_W = 941, IMG_H = 1672;
+const IMG_W = 720, IMG_H = 1280;
 
-// GPS-калибровка (две точки + подтверждено Коло)
-// Бунгало (649,117) → (54.072371, 27.788253)
-// Скворечники (198,1488) → (54.070868, 27.783794)
-// Коло (407,822) → (54.071613, 27.785933) — погрешность 0.1 м ✓
-const A_PX  = [198, 1488];
+// GPS-калибровка (пересчитана пропорционально из 941×1672 → 720×1280)
+// Скворечники (152,1139) → (54.070868, 27.783794)
+// Коло расчётный (312,630) — погрешность 1 пиксель ✓
+const A_PX  = [152, 1139];
 const A_GPS = [54.070868, 27.783794];
 const THETA = 41.92 * Math.PI / 180;
 const CT = Math.cos(THETA), ST = Math.sin(THETA);
-const S   = 0.23274; // м/пиксель
+const S   = 0.30424; // м/пиксель
 const M_LAT = 111320;
 const M_LNG = 111320 * Math.cos(A_GPS[0] * Math.PI / 180);
 
