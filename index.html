@@ -874,8 +874,8 @@ function afterStep(from) {
     case 'voldates':return 'food';
     case 'food':    return 'name';
     case 'name':    return 'phone';
-    case 'phone':   return S.role==='master' ? 'transport' : 'children';
-    case 'children':return (S.children==='yes' && S.role==='participant') ? 'child-ages' : 'transport';
+    case 'phone':   return 'children';
+    case 'children':return (S.children==='yes' && (S.role==='participant' || S.role==='master')) ? 'child-ages' : 'transport';
     case 'child-ages': return 'transport';
     case 'transport':return S.transport==='transfer' ? 'transfer-times' : 'source';
     case 'transfer-times': return 'source';
