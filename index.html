@@ -264,6 +264,28 @@
     .done-icon { font-size:64px; margin-bottom:16px; }
     .done-title { font-size:22px; font-weight:700; color:var(--forest); margin-bottom:10px; }
     .done-text  { font-size:15px; color:var(--muted); line-height:1.6; }
+
+    /* ── Welcome ── */
+    .welcome-img { border-radius:16px; overflow:hidden; margin-bottom:18px; }
+    .welcome-img img { width:100%; display:block; }
+    .welcome-name { font-size:26px; font-weight:800; color:var(--forest); text-align:center; }
+    .welcome-dates { font-size:14px; color:var(--muted); text-align:center; margin-top:5px; }
+    .welcome-desc { font-size:14px; color:var(--text); line-height:1.6; margin:14px 0 22px; }
+    .welcome-btns { display:flex; flex-direction:column; gap:10px; }
+    .btn-map { background:var(--forest); color:white; border:none; padding:15px;
+               border-radius:var(--radius); font-size:16px; cursor:pointer; font-weight:600;
+               display:flex; align-items:center; justify-content:center; gap:8px; }
+    .btn-map:active { transform:scale(0.98); }
+    .btn-faq { background:white; color:var(--forest); border:2px solid var(--border);
+               padding:13px; border-radius:var(--radius); font-size:15px; cursor:pointer;
+               font-weight:500; }
+    .btn-faq:active { transform:scale(0.98); }
+
+    /* ── FAQ ── */
+    .faq-item { background:white; border:1px solid var(--border); border-radius:var(--radius);
+                padding:14px 16px; margin-bottom:10px; }
+    .faq-q { font-size:14px; font-weight:600; color:var(--text); }
+    .faq-a { font-size:13px; color:var(--muted); margin-top:6px; line-height:1.55; }
   </style>
 </head>
 <body>
@@ -275,6 +297,34 @@
 </div>
 
 <!-- 0. ОФЕРТА -->
+<!-- 0. WELCOME -->
+<div class="step active" id="step-welcome">
+  <div class="welcome-img">
+    <img src="welcome.png" alt="Солнечный круг">
+  </div>
+  <div class="welcome-name">🌞 Солнечный круг</div>
+  <div class="welcome-dates">2–5 июля · Раубичи, усадьба «Хутор»</div>
+  <div class="welcome-desc">
+    Более 30 мастеров, праздник Купалье, медитации, живая музыка,
+    взаимообмен творческой продукцией.<br><br>
+    Выберите вариант участия — мы свяжемся с вами для бронирования места.
+  </div>
+  <div class="welcome-btns">
+    <button class="btn btn-next" style="width:100%;font-size:16px;" onclick="startReg()">📱 Зарегистрироваться</button>
+    <button class="btn-map" onclick="window.location.href='map.html'">🗺 Карта праздника</button>
+    <button class="btn-faq" onclick="showFaq()">❓ Частые вопросы</button>
+  </div>
+</div>
+
+<!-- FAQ -->
+<div class="step" id="step-faq">
+  <div class="step-title">Частые вопросы</div>
+  <div id="faq-list"></div>
+  <div class="nav" style="margin-top:8px;">
+    <button class="btn btn-back" onclick="goBack()">◀ Назад</button>
+  </div>
+</div>
+
 <div class="step active" id="step-oferta" style="padding-bottom:130px;">
   <div class="step-title">Добро пожаловать 🌞</div>
   <div id="oferta-text" style="background:white;border-radius:var(--radius);padding:14px 16px;border:1px solid var(--border);font-size:13px;line-height:1.6;color:var(--text);overflow-y:auto;max-height:52vh;scroll-behavior:smooth;" ontouchstart="stopOfertaScroll()">
@@ -808,7 +858,7 @@ const ACC_NIGHT   = {tent:8, hall:15};
 const DAYS_ORDER  = ['2 июля (чт)','3 июля (пт)','4 июля (сб, Купалье)','5 июля (вс)'];
 
 // ── Step machine ───────────────────────────────────────────────────
-let cur = 'role';
+let cur = 'welcome';
 const hist = [];
 
 function afterStep(from) {
@@ -845,7 +895,8 @@ function show(id) {
   if (id === 'oferta') setTimeout(startOfertaScroll, 1500);
   const all=['oferta','role','master-info','ticket','days','acc','nights','voldates','food','name','phone','children','child-ages','transport','transfer-times','source','summary'];
   const i = all.indexOf(id);
-  document.getElementById('pFill').style.width = i<0?'100%': Math.round(i/(all.length-1)*100)+'%';
+  document.getElementById('pFill').style.width =
+    (id==='welcome'||id==='faq') ? '0%' : (i<0?'100%': Math.round(i/(all.length-1)*100)+'%');
   window.scrollTo(0,0);
   if (tg) { hist.length ? tg.BackButton.show() : tg.BackButton.hide(); }
 }
@@ -1466,8 +1517,44 @@ function declineOferta() {
   else show('oferta');
 }
 
+// ── Welcome & FAQ ─────────────────────────────────────────────────
+const FAQ_DATA = [
+  ["📅 Когда заезд и выезд?",              "Заезд — 2 июля с 12:00.\nВыезд — 5 июля до 19:00."],
+  ["📅 Где посмотреть расписание?",         "В главном зале Коло."],
+  ["🎒 Что взять с собой?",                 "Подробный список — в нашем канале @festsolkrug"],
+  ["📶 Есть ли Wi-Fi / зарядки?",           "Wi-Fi нет. Зарядки для телефонов есть."],
+  ["👨‍👧 Можно ли прийти с детьми?",        "Да, дети приветствуются."],
+  ["🐾 Можно ли с домашними животными?",    "Нет, животных на территорию не пускаем."],
+  ["🏥 Есть ли медицинская помощь?",        "Да, на площадке есть медицинская помощь."],
+  ["📸 Можно ли фотографировать?",          "Если никто лично не против — можно."],
+  ["🧘 Как записаться на мастер-класс?",    "Почти все мастер-классы в свободном доступе. Если будут ограниченные — объявят со сцены."],
+  ["🎒 Что делать если потерял вещи?",      "Обратитесь в пункт регистрации."],
+  ["🗓 Можно ли приехать только на один день?","Да, можно приехать на любой день без ночёвки."],
+  ["🚻 Где туалет?",                         "Нажмите кнопку 🗺 Карта — туалеты отмечены на карте."],
+  ["💧 Где взять воды?",                     "В Коло, а также в кране по пути в палаточный городок."],
+  ["🍽 Где столовая?",                        "За палаточным городком — см. 🗺 Карту."],
+  ["🚗 Можно ли заехать на авто?",           "Только для выгрузки и погрузки. Стоянка у входа на Хутор."],
+  ["🔥 Можно ли пожарить шашлыки?",          "Нет, просим этого не делать — питание на фестивале вегетарианское."],
+];
+
+function startReg() {
+  hist.push(cur);
+  show('oferta');
+}
+
+function showFaq() {
+  document.getElementById('faq-list').innerHTML = FAQ_DATA.map(([q, a]) =>
+    `<div class="faq-item">
+      <div class="faq-q">${q}</div>
+      <div class="faq-a">${a.replace(/\n/g,'<br>')}</div>
+    </div>`
+  ).join('');
+  hist.push(cur);
+  show('faq');
+}
+
 // ── Start ─────────────────────────────────────────────────────────
-show('oferta');
+show('welcome');
 </script>
 </body>
 </html>
