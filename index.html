@@ -602,6 +602,21 @@
     <button class="btn btn-back" onclick="goBack()">◀ Назад</button>
     <button class="btn btn-next" id="phone-next" onclick="next()" disabled>Далее →</button>
   </div>
+  <button class="btn" style="width:100%;margin-top:10px;background:none;border:1px solid var(--border);color:var(--muted);font-size:14px" onclick="showContact()">Нет телефона</button>
+</div>
+
+<!-- 9б. КАК СВЯЗАТЬСЯ (если нет телефона) -->
+<div class="step" id="step-contact">
+  <div class="step-title">Как с вами связаться?</div>
+  <div class="step-desc">Укажите адрес в соцсетях или e-mail</div>
+  <div class="inp-group">
+    <input class="inp-field" id="contact-inp" type="text" placeholder="@username или email@mail.ru" oninput="checkContact()">
+    <div class="inp-hint">Например: @ivanova или ivanova@mail.ru</div>
+  </div>
+  <div class="nav">
+    <button class="btn btn-back" onclick="goBack()">◀ Назад</button>
+    <button class="btn btn-next" id="contact-next" onclick="nextContact()" disabled>Далее →</button>
+  </div>
 </div>
 
 <!-- 9. ДЕТИ -->
@@ -875,6 +890,7 @@ function afterStep(from) {
     case 'food':    return 'name';
     case 'name':    return 'phone';
     case 'phone':   return 'children';
+    case 'contact': return S.role==='master' ? 'transport' : 'children';
     case 'children':return (S.children==='yes' && (S.role==='participant' || S.role==='master')) ? 'child-ages' : 'transport';
     case 'child-ages': return 'transport';
     case 'transport':return S.transport==='transfer' ? 'transfer-times' : 'source';
@@ -892,7 +908,7 @@ function show(id) {
   if (ofertaBtns) ofertaBtns.style.display = (id === 'oferta') ? 'block' : 'none';
   stopOfertaScroll();
   if (id === 'oferta') setTimeout(startOfertaScroll, 1500);
-  const all=['oferta','role','master-info','ticket','days','acc','nights','voldates','food','name','phone','children','child-ages','transport','transfer-times','source','summary'];
+  const all=['oferta','role','master-info','ticket','days','acc','nights','voldates','food','name','phone','contact','children','child-ages','transport','transfer-times','source','summary'];
   const i = all.indexOf(id);
   document.getElementById('pFill').style.width =
     (id==='welcome'||id==='faq') ? '0%' : (i<0?'100%': Math.round(i/(all.length-1)*100)+'%');
@@ -1224,7 +1240,23 @@ function checkName() {
   document.getElementById('name-next').disabled = S.name.length < 2;
 }
 
-// ── Phone ────────────────────────────────────────────────────────
+// ── Phone / Contact ───────────────────────────────────────────────
+function showContact() {
+  S.phone = '';
+  hist.push(cur);
+  show('contact');
+}
+
+function checkContact() {
+  const v = document.getElementById('contact-inp').value.trim();
+  document.getElementById('contact-next').disabled = v.length < 2;
+}
+
+function nextContact() {
+  S.phone = document.getElementById('contact-inp').value.trim();
+  next();
+}
+
 function checkPhone() {
   const v = document.getElementById('phone-inp').value.trim();
   const none = ['нет','no','-','—'].includes(v.toLowerCase());
