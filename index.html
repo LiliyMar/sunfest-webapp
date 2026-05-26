@@ -1613,6 +1613,9 @@ function showFaq() {
   show('faq');
 }
 
+// ── Определяем контекст запуска ──────────────────────────────────────
+const _fromBot = new URLSearchParams(window.location.search).get('from') === 'bot';
+
 // ── Pending registration (из localStorage) ──────────────────────────
 (function checkPendingReg() {
   try {
@@ -1652,7 +1655,13 @@ function showFaq() {
 })();
 
 // ── Start ─────────────────────────────────────────────────────────
-show('welcome');
+// Если открыто из бота — пропускаем приветствие, сразу к регистрации
+if (_fromBot) {
+  hist.push('welcome');
+  show('oferta');
+} else {
+  show('welcome');
+}
 </script>
 </body>
 </html>
