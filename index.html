@@ -1434,7 +1434,7 @@ function buildSummary() {
   po.innerHTML += `<button class="pay-btn pay-call" onclick="submit('call')">📞 Нужны уточнения — позвоните мне</button>`;
 }
 
-const API_URL = 'https://RAILWAY_DOMAIN/api/register';
+const API_URL = 'https://solnechny-krug-bot-production.up.railway.app/api/register';
 
 function submit(action) {
   const total = (S.role === 'master') ? 50 : calcTotal();
