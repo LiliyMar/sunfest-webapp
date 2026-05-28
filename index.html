@@ -333,7 +333,7 @@
     — Без сигарет, алкоголя и всего запрещённого<br>
     — С уважением к людям и к тому, что нас окружает<br>
     — Мирно, даже если захотелось поспорить<br><br>
-    ❤️ Если нарушим — попросим уйти, деньги не вернём.<br><br>
+    ❤️ Если нарушите — попросим уйти, деньги не вернём.<br><br>
     «Солнечный круг» — встреча кооперативного участка ПК Светоч. Оплата оргсбора = вступление в кооператив.<br><br>
     Нажимая «Принимаю», вы доверяете нам имя, телефон и Telegram — только чтобы всё организовалось.<br><br>
     <b>Возврат оргсбора:</b><br>
@@ -885,6 +885,23 @@
   <div class="nav"><button class="btn btn-back" onclick="goBack()">◀ Назад</button></div>
 </div>
 
+<!-- 11.5. ПРОМОКОД -->
+<div class="step" id="step-promo">
+  <div class="step-title">Промокод</div>
+  <div class="step-desc">Если есть промокод — введите его здесь</div>
+  <div style="display:flex;gap:8px;align-items:stretch;margin-bottom:6px;">
+    <input class="inp-field" id="promo-inp" type="text" placeholder="Промокод"
+      style="flex:1;padding:12px 14px;font-size:15px;">
+    <button class="btn btn-back" style="flex:unset;padding:0 16px;font-size:14px;white-space:nowrap"
+      onclick="applyPromo()">Применить</button>
+  </div>
+  <div id="promo-msg" style="font-size:13px;color:var(--muted);margin-top:6px;margin-bottom:16px;"></div>
+  <div class="nav">
+    <button class="btn btn-next" onclick="next()">Далее →</button>
+    <button class="btn btn-back" onclick="goBack()">◀ Назад</button>
+  </div>
+</div>
+
 <!-- 12. ИТОГ -->
 <div class="step" id="step-summary">
   <div class="step-title">Ваша заявка</div>
@@ -896,13 +913,6 @@
   </div>
   <div id="disc-validity-summary" style="display:none;font-size:12px;color:#b8660b;text-align:center;margin:6px 0 14px;line-height:1.5;">
     ⚠️ Скидка действует при оплате до <b id="disc-deadline-summary"></b>
-  </div>
-  <div id="promo-section" style="display:none;margin-bottom:14px;">
-    <div style="display:flex;gap:8px;align-items:stretch;">
-      <input class="inp-field" id="promo-inp" type="text" placeholder="Промокод" style="flex:1;padding:12px 14px;font-size:15px;">
-      <button class="btn btn-back" style="flex:unset;padding:0 16px;font-size:14px;white-space:nowrap" onclick="applyPromo()">Применить</button>
-    </div>
-    <div id="promo-msg" style="font-size:13px;color:var(--muted);margin-top:6px;"></div>
   </div>
   <div class="pay-opts" id="pay-opts"></div>
   <button class="btn btn-back" style="width:100%;margin-top:12px" onclick="goBack()">✏️ Изменить данные</button>
@@ -965,7 +975,8 @@ function afterStep(from) {
     case 'child-ages': return 'transport';
     case 'transport':return S.transport==='transfer' ? 'transfer-times' : 'source';
     case 'transfer-times': return 'source';
-    case 'source':  return 'summary';
+    case 'source':  return (S.role==='participant' && S.ticketType!=='vip' && S.nights.length >= 2) ? 'promo' : 'summary';
+    case 'promo':   return 'summary';
     default:        return null;
   }
 }
@@ -978,7 +989,7 @@ function show(id) {
   if (ofertaBtns) ofertaBtns.style.display = (id === 'oferta') ? 'block' : 'none';
   stopOfertaScroll();
   if (id === 'oferta') setTimeout(startOfertaScroll, 1500);
-  const all=['oferta','role','master-info','ticket','days','acc','nights','voldates','food','name','phone','contact','children','child-ages','transport','transfer-times','source','summary'];
+  const all=['oferta','role','master-info','ticket','days','acc','nights','voldates','food','name','phone','contact','children','child-ages','transport','transfer-times','source','promo','summary'];
   const i = all.indexOf(id);
   document.getElementById('pFill').style.width =
     (id==='welcome'||id==='faq'||id==='oferta-full') ? '0%' : (i<0?'100%': Math.round(i/(all.length-1)*100)+'%');
@@ -1515,10 +1526,10 @@ function buildSummary() {
     discSummaryNote.style.display = 'none';
   }
 
-  // Promo code — only for regular participant with 2+ nights
-  const promoSection = document.getElementById('promo-section');
-  promoSection.style.display = (S.role==='participant' && S.ticketType!=='vip' && S.nights.length >= 2) ? 'block' : 'none';
-  if (promoSection.style.display === 'none') { S.promoCode = ''; document.getElementById('promo-inp').value = ''; document.getElementById('promo-msg').textContent = ''; }
+  // Promo code — only for regular participant with 2+ nights (entered on step-promo)
+  if (!(S.role==='participant' && S.ticketType!=='vip' && S.nights.length >= 2)) {
+    S.promoCode = '';
+  }
 
   const po = document.getElementById('pay-opts');
   po.innerHTML = '';
