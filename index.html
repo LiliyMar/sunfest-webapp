@@ -1524,8 +1524,12 @@ function buildSummary() {
   po.innerHTML = '';
 
   if (S.role==='master') {
-    po.innerHTML += `<button class="pay-btn pay-online" onclick="submit('master_erip')">📱 Оплатил через ЕРИП</button>`;
-    po.innerHTML += `<button class="pay-btn pay-onsite" onclick="submit('master_referral')">👥 Участвую по реферальной программе</button>`;
+    po.innerHTML = `
+      <div style="font-size:16px;font-weight:600;margin-bottom:14px;color:#1e3320;text-align:center">Ваш мастер-класс согласован?</div>
+      <button class="pay-btn pay-online" onclick="masterApproved(true)">✅ Да, согласован</button>
+      <button class="pay-btn pay-onsite" onclick="masterApproved(false)">⏳ Нет, ещё нет</button>
+    `;
+    return;
   } else if (S.role!=='volunteer' && S.role!=='artist' && tot>0) {
     const priceTag = hasStrike ? `<s style="opacity:0.5">${noDisc}</s> ${tot}` : tot;
     po.innerHTML += `<button class="pay-btn pay-online" onclick="submit('pay')">💳 Оплатить онлайн (${priceTag} BYN)</button>`;
@@ -1534,6 +1538,36 @@ function buildSummary() {
     po.innerHTML += `<button class="pay-btn pay-online" onclick="submit('pay_at_fest')">✅ Подтвердить регистрацию</button>`;
   }
   po.innerHTML += `<button class="pay-btn pay-call" onclick="submit('call')">📞 Нужны уточнения — позвоните мне</button>`;
+}
+
+function masterApproved(approved) {
+  const po = document.getElementById('pay-opts');
+  if (approved) {
+    po.innerHTML = `
+      <div style="background:#f0f8f0;border-radius:12px;padding:16px;font-size:14px;line-height:1.8;color:#333;margin-bottom:12px;border:1px solid #c8e6c9">
+        🏦 <b>Оплата оргвзноса 50 BYN</b><br><br>
+        Система «Расчёт» (ЕРИП)<br>
+        • Сервис <b>E-POS</b> — оплата товаров и услуг<br><br>
+        1. Лицевой счёт: <code>40359-1-1</code><br>
+        &nbsp;&nbsp;&nbsp;<code>ФАМИЛИЯ ИМЯ ОТЧЕСТВО</code><br><br>
+        2. Сумма: <b>50 BYN</b><br><br>
+        3. Совершить платёж<br><br>
+        После оплаты пришлите скриншот квитанции в чат с ботом 📎
+      </div>
+      <button class="pay-btn pay-online" onclick="submit('master_erip')">📱 Уже оплатил через ЕРИП</button>
+      <button class="pay-btn pay-call" onclick="submit('call')">📞 Нужны уточнения — позвоните мне</button>
+    `;
+  } else {
+    po.innerHTML = `
+      <div style="background:#fffbf0;border-radius:12px;padding:16px;font-size:14px;line-height:1.8;color:#333;margin-bottom:12px;border:1px solid #ffe082">
+        Напишите нам в этот чат о себе:<br><br>
+        Расскажите о своём опыте проведения мастер-классов, сколько лет вы этим занимаетесь, какую тему планируете проводить.<br><br>
+        Мы свяжемся с вами для уточнения деталей.
+      </div>
+      <button class="pay-btn pay-online" onclick="submit('master_apply')">📩 Хорошо, напишу в боте</button>
+      <button class="pay-btn pay-call" onclick="submit('call')">📞 Нужны уточнения — позвоните мне</button>
+    `;
+  }
 }
 
 const API_URL = 'https://solnechny-krug-bot-production.up.railway.app/api/register';
