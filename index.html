@@ -1031,6 +1031,7 @@ function next() {
     document.getElementById('hall-sub').textContent = '15 BYN / ночь · коврик и спальник свои';
   }
   show(n);
+  autoSave();
 }
 
 function goBack() {
@@ -1582,6 +1583,18 @@ function masterApproved(approved) {
 }
 
 const API_URL = 'https://solnechny-krug-bot-production.up.railway.app/api/register';
+
+function autoSave() {
+  if (!S.phone) return;
+  const initData = tg ? tg.initData : '';
+  const total = (S.role === 'master') ? 50 : calcTotal();
+  const data = JSON.stringify({...S, action: 'partial', total});
+  fetch(API_URL, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({initData, data}),
+  }).catch(() => {});
+}
 
 function submit(action) {
   const total = (S.role === 'master') ? 50 : calcTotal();
