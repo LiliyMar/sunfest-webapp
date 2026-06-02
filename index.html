@@ -931,6 +931,11 @@
 const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); }
 
+// ── Режим предпросмотра ────────────────────────────────────────────
+// Открыть мини-аппу со ссылкой ?preview=1 — все кнопки «Далее»
+// разблокированы, можно листать страницы без ввода имени и телефона.
+const PREVIEW = new URLSearchParams(window.location.search).has('preview');
+
 // ── State ──────────────────────────────────────────────────────────
 const S = {
   role:null, ticketType:null,
@@ -994,6 +999,7 @@ function show(id) {
   document.getElementById('pFill').style.width =
     (id==='welcome'||id==='faq'||id==='oferta-full') ? '0%' : (i<0?'100%': Math.round(i/(all.length-1)*100)+'%');
   window.scrollTo(0,0);
+  if (PREVIEW) document.querySelectorAll('#step-'+id+' .btn-next').forEach(b=>b.disabled=false);
   if (tg) { hist.length ? tg.BackButton.show() : tg.BackButton.hide(); }
 }
 
@@ -1830,4 +1836,4 @@ if (_fromBot) {
 </script>
 </body>
 </html>
-<!-- v1779204278 -->
+<!-- v1780422820 -->
