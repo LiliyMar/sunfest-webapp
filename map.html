@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Карта праздника</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
     html, body { width:100%; height:100%; overflow:hidden; background:#1e3320; }
@@ -188,7 +189,23 @@ function redrawDot() {
 }
 
 function centerOnMe() {
-  if (lastLat === null) { showStatus('⏳ Геолокация ещё не готова…', true); return; }
+  if (lastLat === null) {
+    // координат ещё нет — пробуем запросить доступ (и открыть настройки, если отказано)
+    if (useLM && lmReady) {
+      lm.getLocation(loc => {
+        if (loc) {
+          onPosition(loc.latitude, loc.longitude, loc.horizontal_accuracy);
+          centerOnMe();
+        } else if (lm.openSettings) {
+          showStatus('🔒 Разрешите доступ к геолокации в настройках', false);
+          try { lm.openSettings(); } catch (e) {}
+        }
+      });
+    } else {
+      showStatus('⏳ Геолокация ещё не готова…', true);
+    }
+    return;
+  }
   const [ix, iy] = gpsToImg(lastLat, lastLng);
   const sw = window.innerWidth, sh = window.innerHeight;
   tx = sw / 2 - ix * sc;
@@ -256,23 +273,63 @@ function showStatus(text, autohide) {
 }
 
 // ── Геолокация ─────────────────────────────────────────────────────
-if (navigator.geolocation) {
+// Внутри Telegram Mini App обычный navigator.geolocation не работает
+// (особенно на iOS) — используем Telegram LocationManager (Bot API 8.0+),
+// а как запасной вариант (внешний браузер / Android) — navigator.geolocation.
+const lm = tg && tg.LocationManager;
+let useLM = false, lmReady = false, accessDenied = false;
+
+function onPosition(lat, lng, acc) {
+  lastLat = lat; lastLng = lng;
+  lastAcc = Math.round(acc || 0);
+  accessDenied = false;
+  redrawDot();
+  showStatus('📍 Точность: ±' + lastAcc + ' м', true);
+}
+
+// — Запасной вариант: браузерная геолокация —
+function startBrowserGeo() {
+  if (!navigator.geolocation) {
+    showStatus('⚠️ Геолокация не поддерживается этим устройством', false);
+    return;
+  }
+  showStatus('📍 Определяем местоположение…', false);
   navigator.geolocation.watchPosition(
-    pos => {
-      lastLat = pos.coords.latitude;
-      lastLng = pos.coords.longitude;
-      lastAcc = Math.round(pos.coords.accuracy);
-      redrawDot();
-      showStatus('📍 Точность: ±' + lastAcc + ' м', true);
-    },
+    pos => onPosition(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy),
     err => {
-      const m = {1:'🔒 Нет доступа к геолокации', 2:'⚠️ Геолокация недоступна', 3:'⏱ Таймаут'};
+      const m = {1:'🔒 Нет доступа к геолокации', 2:'⚠️ Геолокация недоступна', 3:'⏱ Таймаут — попробуйте ещё раз'};
       showStatus(m[err.code] || '⚠️ Ошибка геолокации', false);
     },
-    { enableHighAccuracy: true, maximumAge: 3000, timeout: 10000 }
+    { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
   );
+}
+
+// — Основной вариант: Telegram LocationManager (живая точка, опрос каждые 4 с) —
+function lmPoll() {
+  if (!lmReady) return;
+  lm.getLocation(loc => {
+    if (loc) {
+      onPosition(loc.latitude, loc.longitude, loc.horizontal_accuracy);
+    } else if (!accessDenied) {
+      accessDenied = true;
+      showStatus('🔒 Нет доступа к геолокации. Нажмите 📍, чтобы разрешить', false);
+    }
+    setTimeout(lmPoll, 4000);
+  });
+}
+
+if (lm) {
+  showStatus('📍 Определяем местоположение…', false);
+  lm.init(() => {
+    if (lm.isLocationAvailable) {
+      useLM = true; lmReady = true;
+      lmPoll();
+    } else {
+      startBrowserGeo();   // LocationManager есть, но недоступен на устройстве
+    }
+  });
 } else {
-  showStatus('⚠️ Геолокация не поддерживается', false);
+  startBrowserGeo();       // старый Telegram или внешний браузер
 }
 </script>
 </body>
