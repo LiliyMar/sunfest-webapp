@@ -179,6 +179,7 @@ function fitView() {
   const sw = window.innerWidth, sh = window.innerHeight;
   sc = Math.min(sw / IMG_W, sh / IMG_H);
   resizeLayer();
+  scene.scrollLeft = 0; scene.scrollTop = 0;   // вернуть к общему виду (по центру)
   redrawDot();
 }
 
@@ -239,6 +240,13 @@ function centerOnMe() {
     return;
   }
   const [ix, iy] = gpsToImg(lastLat, lastLng);
+  // Если точка далеко за пределами карты — вы не на площадке: не уезжаем в пустоту
+  const M = 150;
+  if (ix < -M || iy < -M || ix > IMG_W + M || iy > IMG_H + M) {
+    fitView();
+    showStatus('📍 Вы сейчас вне площадки фестиваля', true);
+    return;
+  }
   const rect = mapImg.getBoundingClientRect();
   scene.scrollLeft += (rect.left + ix * sc) - window.innerWidth  / 2;
   scene.scrollTop  += (rect.top  + iy * sc) - window.innerHeight / 2;
@@ -364,6 +372,16 @@ if (lm) {
 
 // Первичная отрисовка — после того как объявлены dot/ring/lastLat
 fitView();
+
+// Возврат к общему виду, когда карту закрыли и открыли снова.
+// Telegram на Android не перезагружает мини-апп, а показывает в том же
+// состоянии — поэтому сбрасываем вид сами при возврате видимости.
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') fitView();
+});
+if (tg && tg.onEvent) {
+  try { tg.onEvent('activated', fitView); } catch (e) {}
+}
 </script>
 </body>
 </html>
