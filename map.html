@@ -11,19 +11,24 @@
 
     #scene {
       position: absolute; inset: 0;
-      overflow: hidden;
-      touch-action: none;
+      overflow: auto;                      /* панорама = нативный скролл */
+      display: flex;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+      touch-action: pan-x pan-y;
     }
 
-    /* Слой с картинкой — двигается и масштабируется */
+    /* Слой с картинкой — его размер меняется при зуме, скролл его возит */
     #layer {
-      position: absolute;
-      transform-origin: 0 0;
-      will-change: transform;
+      position: relative;
+      margin: auto;                        /* центрирует и сохраняет скролл */
+      flex: none;
+      will-change: width, height;
     }
 
     #map-img {
       display: block;
+      width: 100%; height: 100%;
       user-select: none;
       -webkit-user-drag: none;
     }
@@ -115,9 +120,9 @@
 <div id="scene">
   <div id="layer">
     <img id="map-img" src="map.png?v=4" draggable="false">
+    <div id="ring"></div>
+    <div id="dot"></div>
   </div>
-  <div id="ring"></div>
-  <div id="dot"></div>
 </div>
 
 <div id="status" class="hidden">📍 Определяем местоположение…</div>
@@ -159,44 +164,39 @@ function gpsToImg(lat, lng) {
   ];
 }
 
-// ── Трансформация вида ─────────────────────────────────────────────
-let tx = 0, ty = 0, sc = 1;
+// ── Вид: масштаб слоя + нативный скролл ────────────────────────────
+let sc = 1;
+const scene  = document.getElementById('scene');
 const layer  = document.getElementById('layer');
 const mapImg = document.getElementById('map-img');
-mapImg.style.width  = IMG_W + 'px';
-mapImg.style.height = IMG_H + 'px';
 
-function applyTx() {
-  layer.style.transform = `translate(${tx}px,${ty}px) scale(${sc})`;
+function resizeLayer() {
+  layer.style.width  = (IMG_W * sc) + 'px';
+  layer.style.height = (IMG_H * sc) + 'px';
 }
 
 function fitView() {
   const sw = window.innerWidth, sh = window.innerHeight;
   sc = Math.min(sw / IMG_W, sh / IMG_H);
-  tx = (sw - IMG_W * sc) / 2;
-  ty = (sh - IMG_H * sc) / 2;
-  applyTx();
+  resizeLayer();
   redrawDot();
 }
 
-fitView();
 window.addEventListener('resize', fitView);
 
-// Пиксель изображения → экранные координаты
-function imgToScreen(ix, iy) {
-  return [ix * sc + tx, iy * sc + ty];
-}
-
 // Зум вокруг точки экрана (cx,cy) — для кнопок +/−, колёсика и двойного тапа.
-// Работает всегда, не завися от жестов пинча (которые Telegram может перехватывать).
+// Меняем размер слоя и подкручиваем скролл, чтобы точка под пальцем осталась на месте.
 function zoomBy(factor, cx, cy) {
   if (cx == null) cx = window.innerWidth / 2;
   if (cy == null) cy = window.innerHeight / 2;
-  const newSc = Math.max(0.3, Math.min(10, sc * factor));
-  tx = cx - (cx - tx) * newSc / sc;
-  ty = cy - (cy - ty) * newSc / sc;
-  sc = newSc;
-  applyTx();
+  const rect = mapImg.getBoundingClientRect();
+  const ix = (cx - rect.left) / sc;   // пиксель изображения под точкой
+  const iy = (cy - rect.top)  / sc;
+  sc = Math.max(0.3, Math.min(10, sc * factor));
+  resizeLayer();
+  const r2 = mapImg.getBoundingClientRect();
+  scene.scrollLeft += (r2.left + ix * sc) - cx;
+  scene.scrollTop  += (r2.top  + iy * sc) - cy;
   redrawDot();
 }
 
@@ -208,13 +208,13 @@ let lastLat = null, lastLng = null, lastAcc = 0;
 function redrawDot() {
   if (lastLat === null) return;
   const [ix, iy] = gpsToImg(lastLat, lastLng);
-  const [sx, sy] = imgToScreen(ix, iy);
-  dot.style.left = sx + 'px';
-  dot.style.top  = sy + 'px';
+  const lx = ix * sc, ly = iy * sc;       // координаты внутри слоя
+  dot.style.left = lx + 'px';
+  dot.style.top  = ly + 'px';
   dot.style.display = 'block';
   const r = (lastAcc / S) * sc;
-  ring.style.left   = sx + 'px';
-  ring.style.top    = sy + 'px';
+  ring.style.left   = lx + 'px';
+  ring.style.top    = ly + 'px';
   ring.style.width  = r * 2 + 'px';
   ring.style.height = r * 2 + 'px';
   ring.style.display = r > 5 ? 'block' : 'none';
@@ -239,83 +239,54 @@ function centerOnMe() {
     return;
   }
   const [ix, iy] = gpsToImg(lastLat, lastLng);
-  const sw = window.innerWidth, sh = window.innerHeight;
-  tx = sw / 2 - ix * sc;
-  ty = sh / 2 - iy * sc;
-  applyTx();
+  const rect = mapImg.getBoundingClientRect();
+  scene.scrollLeft += (rect.left + ix * sc) - window.innerWidth  / 2;
+  scene.scrollTop  += (rect.top  + iy * sc) - window.innerHeight / 2;
   redrawDot();
   showStatus('📍 Вы здесь', true);
 }
 
-// ── Перетаскивание и пинч-зум (touch + мышь) ───────────────────────
-// Используем touch-события (а не pointer): в WebView Telegram они надёжнее.
-const scene = document.getElementById('scene');
-let dragging = false, pinching = false;
-let lastX = 0, lastY = 0, lastPinchDist = 0;
-let lastTapTime = 0, lastTapX = 0, lastTapY = 0;
-
-const tDist = (a, b) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
-const tMid  = (a, b) => [(a.clientX + b.clientX) / 2, (a.clientY + b.clientY) / 2];
+// ── Жесты ──────────────────────────────────────────────────────────
+// Панорама = нативный скролл контейнера #scene (его Telegram НЕ перехватывает,
+// в отличие от JS-жестов pointer/touch). Здесь только зум: двойной тап,
+// колесо и перетаскивание мышью на десктопе.
+let tapT = 0, tapX = 0, tapY = 0;          // двойной тап
+let dnX = 0, dnY = 0, dnMoved = false;     // было ли движение пальца (= скролл, не тап)
 
 scene.addEventListener('touchstart', e => {
   if (e.touches.length === 1) {
-    dragging = true; pinching = false;
-    lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
-  } else if (e.touches.length >= 2) {
-    pinching = true; dragging = false;
-    lastPinchDist = tDist(e.touches[0], e.touches[1]);
-  }
-}, { passive: false });
+    dnX = e.touches[0].clientX; dnY = e.touches[0].clientY; dnMoved = false;
+  } else { dnMoved = true; }                // два пальца — точно не тап
+}, { passive: true });
 
 scene.addEventListener('touchmove', e => {
-  e.preventDefault();
-  if (pinching && e.touches.length >= 2) {
-    const dist = tDist(e.touches[0], e.touches[1]);
-    const [mx, my] = tMid(e.touches[0], e.touches[1]);
-    if (lastPinchDist > 0) zoomBy(dist / lastPinchDist, mx, my);
-    lastPinchDist = dist;
-  } else if (dragging && e.touches.length === 1) {
-    const x = e.touches[0].clientX, y = e.touches[0].clientY;
-    tx += x - lastX; ty += y - lastY;
-    lastX = x; lastY = y;
-    applyTx(); redrawDot();
-  }
-}, { passive: false });
+  if (e.touches.length !== 1 ||
+      Math.abs(e.touches[0].clientX - dnX) > 12 ||
+      Math.abs(e.touches[0].clientY - dnY) > 12) dnMoved = true;
+}, { passive: true });                       // passive → нативный скролл работает
 
 scene.addEventListener('touchend', e => {
-  // Двойной тап — приблизить (dblclick на тач-экране не срабатывает)
-  if (!pinching && e.changedTouches.length === 1 && e.touches.length === 0) {
-    const t = e.changedTouches[0], now = Date.now();
-    if (now - lastTapTime < 300 &&
-        Math.abs(t.clientX - lastTapX) < 30 &&
-        Math.abs(t.clientY - lastTapY) < 30) {
-      zoomBy(1.6, t.clientX, t.clientY);
-      lastTapTime = 0;
-    } else {
-      lastTapTime = now; lastTapX = t.clientX; lastTapY = t.clientY;
-    }
+  if (dnMoved || e.touches.length > 0 || e.changedTouches.length !== 1) return;
+  const t = e.changedTouches[0], now = Date.now();
+  if (now - tapT < 300 && Math.abs(t.clientX - tapX) < 30 && Math.abs(t.clientY - tapY) < 30) {
+    zoomBy(1.6, t.clientX, t.clientY);       // двойной тап → приблизить
+    tapT = 0;
+  } else {
+    tapT = now; tapX = t.clientX; tapY = t.clientY;
   }
-  if (e.touches.length === 0) { dragging = false; pinching = false; lastPinchDist = 0; }
-  else if (e.touches.length === 1) {            // с двух пальцев перешли на один
-    pinching = false; dragging = true;
-    lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
-  }
-}, { passive: false });
+}, { passive: true });
 
-// Мышь (десктоп)
-scene.addEventListener('mousedown', e => { dragging = true; lastX = e.clientX; lastY = e.clientY; });
+// Десктоп: перетаскивание мышью = скролл
+let mDown = false, mX = 0, mY = 0;
+scene.addEventListener('mousedown', e => { mDown = true; mX = e.clientX; mY = e.clientY; });
 window.addEventListener('mousemove', e => {
-  if (!dragging) return;
-  tx += e.clientX - lastX; ty += e.clientY - lastY;
-  lastX = e.clientX; lastY = e.clientY;
-  applyTx(); redrawDot();
+  if (!mDown) return;
+  scene.scrollLeft -= e.clientX - mX;
+  scene.scrollTop  -= e.clientY - mY;
+  mX = e.clientX; mY = e.clientY;
 });
-window.addEventListener('mouseup', () => { dragging = false; });
-
-// Двойной клик мышью (десктоп) — приблизить
+window.addEventListener('mouseup', () => { mDown = false; });
 scene.addEventListener('dblclick', e => zoomBy(1.6, e.clientX, e.clientY));
-
-// Зум колёсиком мыши (десктоп)
 scene.addEventListener('wheel', e => {
   e.preventDefault();
   zoomBy(e.deltaY < 0 ? 1.15 : 1 / 1.15, e.clientX, e.clientY);
@@ -390,6 +361,9 @@ if (lm) {
 } else {
   startBrowserGeo();       // старый Telegram или внешний браузер
 }
+
+// Первичная отрисовка — после того как объявлены dot/ring/lastLat
+fitView();
 </script>
 </body>
 </html>
