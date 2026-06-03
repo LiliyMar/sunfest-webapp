@@ -85,6 +85,19 @@
       display: flex; align-items: center; justify-content: center;
     }
 
+    #btn-zoom-in, #btn-zoom-out {
+      position: fixed; right: 18px;
+      width: 42px; height: 42px; border-radius: 50%;
+      background: rgba(255,255,255,0.92); border: none;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+      font-size: 26px; line-height: 1; cursor: pointer; z-index: 100;
+      color: #1e3320; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+    }
+    #btn-zoom-out { bottom: 144px; }
+    #btn-zoom-in  { bottom: 196px; }
+    #btn-zoom-in:active, #btn-zoom-out:active { transform: scale(0.9); }
+
     #status {
       position: fixed; bottom: 152px; left: 50%;
       transform: translateX(-50%);
@@ -108,12 +121,18 @@
 </div>
 
 <div id="status" class="hidden">📍 Определяем местоположение…</div>
+<button id="btn-zoom-in"  onclick="zoomBy(1.5)"    title="Приблизить">+</button>
+<button id="btn-zoom-out" onclick="zoomBy(1/1.5)"  title="Отдалить">−</button>
 <button id="btn-fit"  onclick="fitView()"     title="Вся карта">⊙</button>
 <button id="btn-me"   onclick="centerOnMe()"  title="Где я">📍</button>
 
 <script>
 const tg = window.Telegram?.WebApp;
-if (tg) { tg.ready(); tg.expand(); }
+if (tg) {
+  tg.ready(); tg.expand();
+  // Чтобы вертикальные жесты двигали карту, а не сворачивали мини-аппу
+  try { tg.disableVerticalSwipes && tg.disableVerticalSwipes(); } catch (e) {}
+}
 
 // ── Константы ──────────────────────────────────────────────────────
 const IMG_W = 941, IMG_H = 1672;
@@ -166,6 +185,19 @@ window.addEventListener('resize', fitView);
 // Пиксель изображения → экранные координаты
 function imgToScreen(ix, iy) {
   return [ix * sc + tx, iy * sc + ty];
+}
+
+// Зум вокруг точки экрана (cx,cy) — для кнопок +/−, колёсика и двойного тапа.
+// Работает всегда, не завися от жестов пинча (которые Telegram может перехватывать).
+function zoomBy(factor, cx, cy) {
+  if (cx == null) cx = window.innerWidth / 2;
+  if (cy == null) cy = window.innerHeight / 2;
+  const newSc = Math.max(0.3, Math.min(10, sc * factor));
+  tx = cx - (cx - tx) * newSc / sc;
+  ty = cy - (cy - ty) * newSc / sc;
+  sc = newSc;
+  applyTx();
+  redrawDot();
 }
 
 // ── Точка геолокации ───────────────────────────────────────────────
@@ -261,6 +293,15 @@ scene.addEventListener('pointermove', e => {
 
 scene.addEventListener('pointerup',    e => { delete pointers[e.pointerId]; lastPinchDist = 0; });
 scene.addEventListener('pointercancel',e => { delete pointers[e.pointerId]; lastPinchDist = 0; });
+
+// Зум колёсиком мыши (десктоп)
+scene.addEventListener('wheel', e => {
+  e.preventDefault();
+  zoomBy(e.deltaY < 0 ? 1.15 : 1 / 1.15, e.clientX, e.clientY);
+}, { passive: false });
+
+// Двойной тап / двойной клик — приблизить
+scene.addEventListener('dblclick', e => zoomBy(1.6, e.clientX, e.clientY));
 
 // ── Статус-строка ──────────────────────────────────────────────────
 const statusEl = document.getElementById('status');
