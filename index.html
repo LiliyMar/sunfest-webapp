@@ -1607,6 +1607,21 @@ function submit(action) {
   const data = JSON.stringify({...S, action, total});
   hist.push(cur);
   show('done');
+  // В режиме предпросмотра заявка НЕ отправляется — только показываем,
+  // как выглядит финал. Настоящее подтверждение присылает сам бот в чат.
+  if (PREVIEW) {
+    const wrap = document.querySelector('#step-done .done-wrap');
+    if (wrap) wrap.innerHTML = `
+      <div class="done-icon">👀</div>
+      <div class="done-title">Это предпросмотр</div>
+      <div class="done-text" style="margin-top:10px;font-size:15px;color:#7a6a55;line-height:1.6">
+        Заявка не отправлена.<br><br>
+        В настоящем боте после отправки придёт сообщение-подтверждение
+        со ссылкой на сайт
+        <a href="https://sunfest.by" target="_blank" style="color:#1e3320;font-weight:600">sunfest.by</a>.
+      </div>`;
+    return;
+  }
   setTimeout(() => {
     if (tg) { try { tg.sendData(data); } catch(e) {} }
     // Если мини-апп не закрылся — sendData не сработал → отправляем через API
@@ -1836,4 +1851,4 @@ if (_fromBot) {
 </script>
 </body>
 </html>
-<!-- v1780422820 -->
+<!-- v1780508400 -->
