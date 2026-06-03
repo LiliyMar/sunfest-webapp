@@ -247,61 +247,79 @@ function centerOnMe() {
   showStatus('📍 Вы здесь', true);
 }
 
-// ── Пинч-зум и перетаскивание ──────────────────────────────────────
+// ── Перетаскивание и пинч-зум (touch + мышь) ───────────────────────
+// Используем touch-события (а не pointer): в WebView Telegram они надёжнее.
 const scene = document.getElementById('scene');
-let pointers = {}, lastPinchDist = 0;
+let dragging = false, pinching = false;
+let lastX = 0, lastY = 0, lastPinchDist = 0;
+let lastTapTime = 0, lastTapX = 0, lastTapY = 0;
 
-scene.addEventListener('pointerdown', e => {
-  pointers[e.pointerId] = { x: e.clientX, y: e.clientY };
-  scene.setPointerCapture(e.pointerId);
-});
+const tDist = (a, b) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+const tMid  = (a, b) => [(a.clientX + b.clientX) / 2, (a.clientY + b.clientY) / 2];
 
-scene.addEventListener('pointermove', e => {
-  if (!pointers[e.pointerId]) return;
-  const prev = pointers[e.pointerId];
-  const ids = Object.keys(pointers);
-
-  if (ids.length === 1) {
-    // Перетаскивание
-    tx += e.clientX - prev.x;
-    ty += e.clientY - prev.y;
-    applyTx();
-    redrawDot();
-
-  } else if (ids.length === 2) {
-    // Пинч-зум
-    pointers[e.pointerId] = { x: e.clientX, y: e.clientY };
-    const [id1, id2] = ids;
-    const p1 = pointers[id1], p2 = pointers[id2];
-    const dist = Math.hypot(p1.x - p2.x, p1.y - p2.y);
-    if (lastPinchDist > 0) {
-      const ratio = dist / lastPinchDist;
-      const mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2;
-      const newSc = Math.max(0.3, Math.min(10, sc * ratio));
-      tx = mx - (mx - tx) * newSc / sc;
-      ty = my - (my - ty) * newSc / sc;
-      sc = newSc;
-      applyTx();
-      redrawDot();
-    }
-    lastPinchDist = dist;
-    return;
+scene.addEventListener('touchstart', e => {
+  if (e.touches.length === 1) {
+    dragging = true; pinching = false;
+    lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
+  } else if (e.touches.length >= 2) {
+    pinching = true; dragging = false;
+    lastPinchDist = tDist(e.touches[0], e.touches[1]);
   }
+}, { passive: false });
 
-  pointers[e.pointerId] = { x: e.clientX, y: e.clientY };
+scene.addEventListener('touchmove', e => {
+  e.preventDefault();
+  if (pinching && e.touches.length >= 2) {
+    const dist = tDist(e.touches[0], e.touches[1]);
+    const [mx, my] = tMid(e.touches[0], e.touches[1]);
+    if (lastPinchDist > 0) zoomBy(dist / lastPinchDist, mx, my);
+    lastPinchDist = dist;
+  } else if (dragging && e.touches.length === 1) {
+    const x = e.touches[0].clientX, y = e.touches[0].clientY;
+    tx += x - lastX; ty += y - lastY;
+    lastX = x; lastY = y;
+    applyTx(); redrawDot();
+  }
+}, { passive: false });
+
+scene.addEventListener('touchend', e => {
+  // Двойной тап — приблизить (dblclick на тач-экране не срабатывает)
+  if (!pinching && e.changedTouches.length === 1 && e.touches.length === 0) {
+    const t = e.changedTouches[0], now = Date.now();
+    if (now - lastTapTime < 300 &&
+        Math.abs(t.clientX - lastTapX) < 30 &&
+        Math.abs(t.clientY - lastTapY) < 30) {
+      zoomBy(1.6, t.clientX, t.clientY);
+      lastTapTime = 0;
+    } else {
+      lastTapTime = now; lastTapX = t.clientX; lastTapY = t.clientY;
+    }
+  }
+  if (e.touches.length === 0) { dragging = false; pinching = false; lastPinchDist = 0; }
+  else if (e.touches.length === 1) {            // с двух пальцев перешли на один
+    pinching = false; dragging = true;
+    lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
+  }
+}, { passive: false });
+
+// Мышь (десктоп)
+scene.addEventListener('mousedown', e => { dragging = true; lastX = e.clientX; lastY = e.clientY; });
+window.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  tx += e.clientX - lastX; ty += e.clientY - lastY;
+  lastX = e.clientX; lastY = e.clientY;
+  applyTx(); redrawDot();
 });
+window.addEventListener('mouseup', () => { dragging = false; });
 
-scene.addEventListener('pointerup',    e => { delete pointers[e.pointerId]; lastPinchDist = 0; });
-scene.addEventListener('pointercancel',e => { delete pointers[e.pointerId]; lastPinchDist = 0; });
+// Двойной клик мышью (десктоп) — приблизить
+scene.addEventListener('dblclick', e => zoomBy(1.6, e.clientX, e.clientY));
 
 // Зум колёсиком мыши (десктоп)
 scene.addEventListener('wheel', e => {
   e.preventDefault();
   zoomBy(e.deltaY < 0 ? 1.15 : 1 / 1.15, e.clientX, e.clientY);
 }, { passive: false });
-
-// Двойной тап / двойной клик — приблизить
-scene.addEventListener('dblclick', e => zoomBy(1.6, e.clientX, e.clientY));
 
 // ── Статус-строка ──────────────────────────────────────────────────
 const statusEl = document.getElementById('status');
