@@ -1378,27 +1378,30 @@ const SRC_L   = {social:'📱 Telegram',instagram:'📸 Инстаграм',webs
 const ACC_L   = {tent:'⛺ Своя палатка',hall:'🏠 Общий зал',none:'🚶 Без проживания'};
 
 // ── Система скидок ────────────────────────────────────────────────
+// Скидка раннего бронирования на оргвзнос.
+// Внимание: в JS месяцы считаются с 0 — май = 4, июнь = 5, июль = 6.
 function getDiscount() {
   const n = new Date();
   const d = new Date(n.getFullYear(), n.getMonth(), n.getDate());
-  if (d >= new Date(2026,4,21) && d <= new Date(2026,4,23)) return 0.40;
-  if (d >= new Date(2026,4,24) && d <= new Date(2026,5,1))  return 0.30;
-  if (d >= new Date(2026,5,2)  && d <= new Date(2026,5,8))  return 0.25;
-  if (d >= new Date(2026,5,9)  && d <= new Date(2026,5,15)) return 0.20;
-  if (d >= new Date(2026,5,16) && d <= new Date(2026,5,22)) return 0.15;
-  if (d >= new Date(2026,5,23) && d <= new Date(2026,5,29)) return 0.10;
-  if (d >= new Date(2026,5,30) && d <= new Date(2026,6,1))  return 0.05;
+  if (d >= new Date(2026,4,21) && d <= new Date(2026,4,22)) return 0.40; // 21–22 мая
+  if (d >= new Date(2026,4,23) && d <= new Date(2026,4,31)) return 0.30; // 23–31 мая
+  if (d >= new Date(2026,5,1)  && d <= new Date(2026,5,7))  return 0.25; // 1–7 июня
+  if (d >= new Date(2026,5,8)  && d <= new Date(2026,5,14)) return 0.20; // 8–14 июня
+  if (d >= new Date(2026,5,15) && d <= new Date(2026,5,21)) return 0.15; // 15–21 июня
+  if (d >= new Date(2026,5,22) && d <= new Date(2026,5,29)) return 0.10; // 22–29 июня
+  if (d >= new Date(2026,5,30) && d <= new Date(2026,6,1))  return 0.05; // 30 июня – 1 июля
   return 0;
 }
 
+// Последний день текущей ступени скидки (для подсказки «действует до …»).
 function discountDeadline() {
   const n = new Date();
   const d = new Date(n.getFullYear(), n.getMonth(), n.getDate());
-  if (d <= new Date(2026,4,23))  return '23 мая';
-  if (d <= new Date(2026,5,1))   return '1 июня';
-  if (d <= new Date(2026,5,8))   return '8 июня';
-  if (d <= new Date(2026,5,15))  return '15 июня';
-  if (d <= new Date(2026,5,22))  return '22 июня';
+  if (d <= new Date(2026,4,22))  return '22 мая';
+  if (d <= new Date(2026,4,31))  return '31 мая';
+  if (d <= new Date(2026,5,7))   return '7 июня';
+  if (d <= new Date(2026,5,14))  return '14 июня';
+  if (d <= new Date(2026,5,21))  return '21 июня';
   if (d <= new Date(2026,5,29))  return '29 июня';
   return '1 июля';
 }
