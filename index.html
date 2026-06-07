@@ -463,6 +463,20 @@
   </div>
 </div>
 
+<!-- 1c. МАСТЕР — ТЕМА МАСТЕР-КЛАССА -->
+<div class="step" id="step-master-topic">
+  <div class="step-title">Какая тема мастер-класса?</div>
+  <div class="step-desc">Коротко напишите, что будете проводить</div>
+  <div class="inp-group">
+    <input class="inp-field" id="master-topic-inp" type="text" placeholder="Например: гончарное дело, медитация, народные танцы" oninput="checkMasterTopic()">
+    <div class="inp-hint">Это поможет организаторам составить расписание</div>
+  </div>
+  <div class="nav">
+    <button class="btn btn-back" onclick="goBack()">◀ Назад</button>
+    <button class="btn btn-next" id="master-topic-next" onclick="next()" disabled>Далее →</button>
+  </div>
+</div>
+
 <!-- 2. ТИП БИЛЕТА -->
 <div class="step" id="step-ticket">
   <div class="step-title">Выберите оргвзнос</div>
@@ -933,7 +947,7 @@ const PREVIEW = new URLSearchParams(window.location.search).has('preview');
 
 // ── State ──────────────────────────────────────────────────────────
 const S = {
-  role:null, ticketType:null,
+  role:null, ticketType:null, masterTopic:'',
   days:[], allDays:false, accommodation:null,
   nights:[], arrivalDate:'', departureDate:'',
   food:[], name:'', phone:'',
@@ -959,7 +973,8 @@ function afterStep(from) {
   switch(from) {
     case 'oferta':  return 'role';
     case 'role':    return S.role==='volunteer' ? 'acc' : (S.role==='artist' ? 'days' : (S.role==='master' ? 'master-info' : 'ticket'));
-    case 'master-info': return 'days';
+    case 'master-info': return 'master-topic';
+    case 'master-topic': return 'days';
     case 'ticket':  return S.ticketType==='vip' ? 'nights' : 'days';
     case 'days':    return 'acc';
     case 'acc':
@@ -989,7 +1004,7 @@ function show(id) {
   if (ofertaBtns) ofertaBtns.style.display = (id === 'oferta') ? 'block' : 'none';
   stopOfertaScroll();
   if (id === 'oferta') setTimeout(startOfertaScroll, 1500);
-  const all=['oferta','role','master-info','ticket','days','acc','nights','voldates','food','name','phone','contact','children','child-ages','transport','transfer-times','source','promo','summary'];
+  const all=['oferta','role','master-info','master-topic','ticket','days','acc','nights','voldates','food','name','phone','contact','children','child-ages','transport','transfer-times','source','promo','summary'];
   const i = all.indexOf(id);
   document.getElementById('pFill').style.width =
     (id==='welcome'||id==='faq'||id==='oferta-full') ? '0%' : (i<0?'100%': Math.round(i/(all.length-1)*100)+'%');
@@ -1323,6 +1338,12 @@ function checkName() {
   document.getElementById('name-next').disabled = S.name.length < 2;
 }
 
+// ── Тема мастер-класса ───────────────────────────────────────────
+function checkMasterTopic() {
+  S.masterTopic = document.getElementById('master-topic-inp').value.trim();
+  document.getElementById('master-topic-next').disabled = S.masterTopic.length < 2;
+}
+
 // ── Phone / Contact ───────────────────────────────────────────────
 function showContact() {
   S.phone = '';
@@ -1467,6 +1488,7 @@ function buildSummary() {
     rows.push(['Участие', '✅ Бесплатно']);
     rows.push(['Питание', '✅ Включено']);
   } else if (S.role==='master') {
+    if (S.masterTopic) rows.push(['Тема мастер-класса', S.masterTopic]);
     rows.push(['Оргвзнос', '50 б.р. (ЕРИП) или реферальная программа']);
     rows.push(['Дни', S.days.length ? S.days.join(', ') : '—']);
     rows.push(['Проживание', ACC_L[S.accommodation]||'']);
