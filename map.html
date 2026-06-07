@@ -260,20 +260,41 @@ function centerOnMe() {
 // колесо и перетаскивание мышью на десктопе.
 let tapT = 0, tapX = 0, tapY = 0;          // двойной тап
 let dnX = 0, dnY = 0, dnMoved = false;     // было ли движение пальца (= скролл, не тап)
+let pinching = false, pinchDist = 0;       // щипок двумя пальцами (зум)
+
+function touchDist(t) {
+  return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY);
+}
+function touchMid(t) {
+  return [(t[0].clientX + t[1].clientX) / 2, (t[0].clientY + t[1].clientY) / 2];
+}
 
 scene.addEventListener('touchstart', e => {
-  if (e.touches.length === 1) {
+  if (e.touches.length === 2) {
+    pinching = true; pinchDist = touchDist(e.touches); dnMoved = true;
+  } else if (e.touches.length === 1) {
     dnX = e.touches[0].clientX; dnY = e.touches[0].clientY; dnMoved = false;
-  } else { dnMoved = true; }                // два пальца — точно не тап
+  }
 }, { passive: true });
 
 scene.addEventListener('touchmove', e => {
+  // Щипок двумя пальцами → зум вокруг точки между пальцами
+  if (e.touches.length === 2) {
+    e.preventDefault();                      // отключаем нативный скролл на время щипка
+    pinching = true;
+    const d = touchDist(e.touches);
+    const [mx, my] = touchMid(e.touches);
+    if (pinchDist > 0 && d > 0) zoomBy(d / pinchDist, mx, my);
+    pinchDist = d;
+    return;
+  }
   if (e.touches.length !== 1 ||
       Math.abs(e.touches[0].clientX - dnX) > 12 ||
       Math.abs(e.touches[0].clientY - dnY) > 12) dnMoved = true;
-}, { passive: true });                       // passive → нативный скролл работает
+}, { passive: false });                      // 1 палец не блокируем → нативный скролл работает
 
 scene.addEventListener('touchend', e => {
+  if (e.touches.length < 2) { pinching = false; pinchDist = 0; }
   if (dnMoved || e.touches.length > 0 || e.changedTouches.length !== 1) return;
   const t = e.changedTouches[0], now = Date.now();
   if (now - tapT < 300 && Math.abs(t.clientX - tapX) < 30 && Math.abs(t.clientY - tapY) < 30) {
