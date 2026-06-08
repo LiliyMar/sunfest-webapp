@@ -941,9 +941,22 @@ const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); }
 
 // ── Режим предпросмотра ────────────────────────────────────────────
-// Открыть мини-аппу со ссылкой ?preview=1 — все кнопки «Далее»
-// разблокированы, можно листать страницы без ввода имени и телефона.
-const PREVIEW = new URLSearchParams(window.location.search).has('preview');
+// Активируется автоматически для администратора (по Telegram ID)
+// или вручную через параметр ?preview=1 в URL.
+// В этом режиме все кнопки «Далее» разблокированы — можно листать
+// страницы анкеты без заполнения. Заявка при этом не отправляется.
+const ADMIN_IDS = [673405311, 887660636];
+const _tgUserId = tg?.initDataUnsafe?.user?.id;
+const IS_ADMIN = ADMIN_IDS.includes(_tgUserId);
+const PREVIEW = IS_ADMIN || new URLSearchParams(window.location.search).has('preview');
+if (IS_ADMIN) {
+  const _badge = document.createElement('div');
+  _badge.textContent = '👁 просмотр';
+  _badge.style.cssText = 'position:fixed;top:6px;right:10px;z-index:999;font-size:11px;' +
+    'background:rgba(255,200,0,0.9);color:#1e3320;border-radius:20px;' +
+    'padding:2px 9px;font-weight:700;pointer-events:none;letter-spacing:0.3px;';
+  document.body.appendChild(_badge);
+}
 
 // ── State ──────────────────────────────────────────────────────────
 const S = {
