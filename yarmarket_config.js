@@ -35,5 +35,12 @@ var YARMARKET_CONFIG = {
       image: "yarmarket/shirt4.jpg",
       sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     },
+    {
+      id: "shirt5",
+      name: "Футболка «Древо жизни» (зелёная)",
+      price: 0,
+      image: "yarmarket/shirt5.jpg",
+      sizes: ["XS", "S", "M", "L", "XL", "XXL"],
+    },
   ],
 };
