@@ -459,7 +459,6 @@ function renderGrid() {
       </div>
       <div class="product-info">
         <div class="product-name">${p.name}</div>
-        <div class="product-price">${p.price} BYN</div>
         <button class="btn-order" onclick="event.stopPropagation();openOrderFormFor('${p.id}')">Заказать</button>
       </div>
     </div>
@@ -481,7 +480,7 @@ function openProductModal(productId) {
   }
 
   document.getElementById('modal-name').textContent = currentProduct.name;
-  document.getElementById('modal-price').textContent = currentProduct.price + ' BYN';
+  document.getElementById('modal-price').textContent = '';
 
   document.getElementById('modal-product').classList.remove('hidden');
   setupBack(closeProductModal);
@@ -519,7 +518,7 @@ function openOrderForm() {
 
   // Товар
   document.getElementById('form-product-name').textContent = currentProduct.name;
-  document.getElementById('form-product-price').textContent = currentProduct.price + ' BYN';
+  document.getElementById('form-product-price').textContent = '';
 
   const imgWrap = document.getElementById('form-img-wrap');
   if (currentProduct.image) {
