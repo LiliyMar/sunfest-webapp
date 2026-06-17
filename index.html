@@ -1037,6 +1037,9 @@ function next() {
   if (n==='days')     updateDayPriceVisibility();
   if (n==='voldates') { buildCalendar(); calPickStep='arrival'; }
   if (n==='days')     updatePriceBanner('price-days','price-days-val');
+  if (n==='days' && S.role==='master') {
+    document.querySelector('#step-days .step-desc').textContent = 'Выберите дни, в которые планируете присутствовать';
+  }
   if (n==='nights')   updatePriceBanner('price-nights','price-nights-val');
   if (n==='food')     updatePriceBanner('price-food','price-food-val');
   if (n==='nights' && S.ticketType==='vip') {
@@ -1177,7 +1180,7 @@ function toggleDay(card) {
 }
 
 function updateDayPriceVisibility() {
-  const isArtist = S.role === 'artist';
+  const isArtist = S.role === 'artist' || S.role === 'master';
   const disc = getDiscount();
   // Баннер скидки
   const banner = document.getElementById('days-disc-banner');
