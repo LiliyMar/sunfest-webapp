@@ -23,7 +23,7 @@ var YARMARKET_CONFIG = {
     },
     {
       id: "shirt3",
-      name: "Футболка «Чакры» (зелёная, золото)",
+      name: "Футболка «Чакры» (зелёная, жёлтая)",
       price: 0,
       image: "yarmarket/shirt3.jpg",
       sizes: ["XS", "S", "M", "L", "XL", "XXL"],
