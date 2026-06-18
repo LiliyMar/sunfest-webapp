@@ -950,6 +950,39 @@ const ADMIN_IDS = [673405311, 887660636];
 const _tgUserId = tg?.initDataUnsafe?.user?.id;
 const IS_ADMIN = ADMIN_IDS.includes(_tgUserId);
 const PREVIEW = IS_ADMIN || new URLSearchParams(window.location.search).has('preview');
+let _previewPendingData = null;
+function _submitReal() {
+  if (!_previewPendingData) return;
+  const data = _previewPendingData;
+  _previewPendingData = null;
+  const wrap = document.querySelector('#step-done .done-wrap');
+  if (wrap) wrap.innerHTML = '<div class="done-icon">⏳</div><div class="done-title">Отправляем...</div>';
+  if (tg) { try { tg.sendData(data); } catch(e) {} }
+  setTimeout(() => {
+    const initData = tg ? tg.initData : '';
+    fetch(API_URL, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({initData, data}),
+    })
+    .then(r => r.json())
+    .then(r => {
+      if (!wrap) return;
+      if (r.ok) {
+        wrap.innerHTML = '<div class="done-icon">✅</div><div class="done-title">Заявка отправлена!</div>' +
+          '<div class="done-text" style="margin-top:10px;font-size:15px;color:#7a6a55">Вернитесь в чат — бот пришлёт подтверждение.</div>' +
+          '<button onclick="if(window.Telegram?.WebApp)window.Telegram.WebApp.close()" style="margin-top:28px;padding:14px 36px;background:#1e3320;color:white;border:none;border-radius:12px;font-size:16px;cursor:pointer;font-weight:600">← Вернуться в Telegram</button>';
+      } else {
+        wrap.innerHTML = '<div class="done-icon">❌</div><div class="done-title">Ошибка</div>' +
+          '<div class="done-text" style="margin-top:10px;font-size:15px;color:#7a6a55">Попробуйте ещё раз или напишите организаторам.</div>';
+      }
+    })
+    .catch(() => {
+      if (wrap) wrap.innerHTML = '<div class="done-icon">❌</div><div class="done-title">Нет связи</div>' +
+        '<div class="done-text" style="margin-top:10px;font-size:15px;color:#7a6a55">Проверьте интернет и попробуйте ещё раз.</div>';
+    });
+  }, 800);
+}
 if (IS_ADMIN) {
   const _badge = document.createElement('div');
   _badge.textContent = '👁 просмотр';
@@ -1647,16 +1680,20 @@ function submit(action) {
   // В режиме предпросмотра заявка НЕ отправляется — только показываем,
   // как выглядит финал. Настоящее подтверждение присылает сам бот в чат.
   if (PREVIEW) {
+    _previewPendingData = data;
     const wrap = document.querySelector('#step-done .done-wrap');
     if (wrap) wrap.innerHTML = `
-      <div class="done-icon">👀</div>
-      <div class="done-title">Это предпросмотр</div>
+      <div class="done-icon">👁</div>
+      <div class="done-title">Режим предпросмотра</div>
       <div class="done-text" style="margin-top:10px;font-size:15px;color:#7a6a55;line-height:1.6">
-        Заявка не отправлена.<br><br>
-        В настоящем боте после отправки придёт сообщение-подтверждение
-        со ссылкой на сайт
-        <a href="https://sunfest.by" target="_blank" style="color:#1e3320;font-weight:600">sunfest.by</a>.
-      </div>`;
+        Вы администратор — заявка не отправлена автоматически.<br><br>
+        Нажмите кнопку ниже, чтобы зарегистрироваться по-настоящему.
+      </div>
+      <button onclick="_submitReal()"
+        style="margin-top:20px;padding:14px 28px;background:#1e3320;color:white;
+               border:none;border-radius:12px;font-size:16px;cursor:pointer;font-weight:600">
+        ✅ Отправить настоящую заявку
+      </button>`;
     return;
   }
   setTimeout(() => {
