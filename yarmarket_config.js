@@ -8,6 +8,14 @@
 var YARMARKET_CONFIG = {
   products: [
     {
+      id: "book",
+      name: "Книга Даров",
+      price: 0,
+      image: "yarmarket/book.jpg",
+      sizes: [],
+      description: "«64 ключа к твоим суперсилам» — СветЛана.\nПервый эксклюзивный тираж, только на слёте.",
+    },
+    {
       id: "sunshine",
       name: "Брызги солнца",
       price: 0,
