@@ -8,6 +8,14 @@
 var YARMARKET_CONFIG = {
   products: [
     {
+      id: "choker",
+      name: "Чокер + серьги асимметрия",
+      price: 0,
+      image: "yarmarket/choker.jpg",
+      sizes: [],
+      description: "Натуральная замша, агаты.\nНатали — Breeze of Dream",
+    },
+    {
       id: "dreamcatcher3",
       name: "Ловец снов-талисман",
       price: 0,
