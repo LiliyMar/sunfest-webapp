@@ -8,6 +8,14 @@
 var YARMARKET_CONFIG = {
   products: [
     {
+      id: "dreamcatcher",
+      name: "Ловец снов «Древо»",
+      price: 0,
+      image: "yarmarket/dreamcatcher.jpg",
+      sizes: [],
+      description: "Лоза, рудракша, перо орла, джут.\nНатали — Breeze of Dream",
+    },
+    {
       id: "shirt1",
       name: "Футболка «Чакры» (бежевая, радуга)",
       price: 0,
