@@ -58,5 +58,13 @@ var YARMARKET_CONFIG = {
       sizes: ["XS", "S", "M", "L", "XL", "XXL"],
       description: "Элегантное персиковое кимоно из крапивы с поясом и боковыми разрезами.\nДизайнер «TURIYA» — Наима",
     },
+    {
+      id: "dress2",
+      name: "Платье Ясновижу",
+      price: 380,
+      image: "yarmarket/dress2.jpg",
+      sizes: ["XS", "S", "M", "L", "XL", "XXL"],
+      description: "из крапивы с обережной вышивкой для ясного видения.\nДизайнер «TURIYA» — Наима",
+    },
   ],
 };
