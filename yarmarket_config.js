@@ -8,6 +8,14 @@
 var YARMARKET_CONFIG = {
   products: [
     {
+      id: "dreamcatcher2",
+      name: "Ловец снов с музыкой ветра",
+      price: 0,
+      image: "yarmarket/dreamcatcher2.jpg",
+      sizes: [],
+      description: "Бамбук, пряжа, шерл.\nНатали — Breeze of Dream",
+    },
+    {
       id: "dreamcatcher",
       name: "Ловец снов «Древо»",
       price: 0,
