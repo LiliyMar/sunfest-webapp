@@ -8,6 +8,14 @@
 var YARMARKET_CONFIG = {
   products: [
     {
+      id: "dreamcatcher3",
+      name: "Ловец снов-талисман",
+      price: 0,
+      image: "yarmarket/dreamcatcher3.jpg",
+      sizes: [],
+      description: "Натуральная кожа, натуральные камни, джут, фликер.\nНатали — Breeze of Dream",
+    },
+    {
       id: "dreamcatcher2",
       name: "Ловец снов с музыкой ветра",
       price: 0,
