@@ -48,7 +48,7 @@ var YARMARKET_CONFIG = {
       price: 280,
       image: "yarmarket/kimono.jpg",
       sizes: ["XS", "S", "M", "L", "XL", "XXL"],
-      description: "Элегантное персиковое кимоно из крапивы с поясом и боковыми разрезами.",
+      description: "Элегантное персиковое кимоно из крапивы с поясом и боковыми разрезами.\nДизайнер «TURIYA» — Наима",
     },
   ],
 };
