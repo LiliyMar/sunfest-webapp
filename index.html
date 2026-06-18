@@ -1683,7 +1683,7 @@ function submit(action) {
             <button onclick="if(window.Telegram?.WebApp)window.Telegram.WebApp.close()"
               style="margin-top:28px;padding:14px 36px;background:#1e3320;color:white;
                      border:none;border-radius:12px;font-size:16px;cursor:pointer;font-weight:600">
-              Закрыть ✕
+              ← Вернуться в Telegram
             </button>`;
           try { localStorage.removeItem('sk_pending_reg'); } catch(e) {}
         } else {
@@ -1699,8 +1699,8 @@ function submit(action) {
             <button onclick="if(window.Telegram?.WebApp)window.Telegram.WebApp.close()"
               style="margin-top:28px;padding:14px 36px;background:#1e3320;color:white;
                      border:none;border-radius:12px;font-size:16px;cursor:pointer;font-weight:600">
-              Закрыть →
-            </button>`;
+              ← Вернуться в Telegram
+</button>`;
         }
       })
       .catch(() => {
