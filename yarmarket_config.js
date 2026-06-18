@@ -43,6 +43,14 @@ var YARMARKET_CONFIG = {
       sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     },
     {
+      id: "dress",
+      name: "Платье Этника",
+      price: 230,
+      image: "yarmarket/dress.jpg",
+      sizes: ["XS", "S", "M", "L", "XL", "XXL"],
+      description: "Свободное этническое платье оверсайз из хлопка и льна с разрезами.\nДизайнер «TURIYA» — Наима",
+    },
+    {
       id: "kimono",
       name: "Кимоно Рассвет",
       price: 280,
