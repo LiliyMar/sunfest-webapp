@@ -356,6 +356,7 @@
   <div class="modal-info">
     <div class="modal-name" id="modal-name"></div>
     <div class="modal-price" id="modal-price"></div>
+    <div id="modal-desc" style="font-size:14px;color:rgba(255,255,255,0.8);margin-bottom:14px;line-height:1.5;"></div>
     <button class="modal-btn-order" onclick="openOrderForm()">🛒 Заказать</button>
   </div>
 </div>
@@ -481,6 +482,7 @@ function openProductModal(productId) {
 
   document.getElementById('modal-name').textContent = currentProduct.name;
   document.getElementById('modal-price').textContent = '';
+  document.getElementById('modal-desc').textContent = currentProduct.description || '';
 
   document.getElementById('modal-product').classList.remove('hidden');
   setupBack(closeProductModal);

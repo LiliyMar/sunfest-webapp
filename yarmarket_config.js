@@ -42,5 +42,13 @@ var YARMARKET_CONFIG = {
       image: "yarmarket/shirt5.jpg",
       sizes: ["XS", "S", "M", "L", "XL", "XXL"],
     },
+    {
+      id: "kimono",
+      name: "Кимоно Рассвет",
+      price: 280,
+      image: "yarmarket/kimono.jpg",
+      sizes: ["XS", "S", "M", "L", "XL", "XXL"],
+      description: "Элегантное персиковое кимоно из крапивы с поясом и боковыми разрезами.",
+    },
   ],
 };
