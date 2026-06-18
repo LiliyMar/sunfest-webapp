@@ -8,6 +8,14 @@
 var YARMARKET_CONFIG = {
   products: [
     {
+      id: "sunshine",
+      name: "Брызги солнца",
+      price: 0,
+      image: "yarmarket/sunshine.jpg",
+      sizes: [],
+      description: "Зеркало, кристаллы, стекло.\nНатали — Breeze of Dream",
+    },
+    {
       id: "choker",
       name: "Чокер + серьги асимметрия",
       price: 0,
