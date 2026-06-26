@@ -424,7 +424,6 @@
   </div>
 </div>
 
-<script src="yarmarket_config.js"></script>
 <script>
 const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); }
@@ -647,7 +646,21 @@ function hideBack() {
 }
 
 // ── Инициализация ──────────────────────────────────────────────
-renderGrid();
+const YARMARKET_API = 'https://solnechny-krug-bot-production.up.railway.app/api/yarmarket/items';
+
+async function loadAndRender() {
+  try {
+    const resp = await fetch(YARMARKET_API);
+    if (resp.ok) {
+      window.YARMARKET_CONFIG = await resp.json();
+    }
+  } catch (e) {
+    console.error('Не удалось загрузить товары:', e);
+  }
+  renderGrid();
+}
+
+loadAndRender();
 </script>
 </body>
 </html>
