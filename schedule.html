@@ -43,6 +43,26 @@
       background: var(--cream);
       border-radius: 24px 24px 0 0;
     }
+    .back-btn {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.12);
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--gold-lt);
+      font-size: 20px;
+      text-decoration: none;
+      z-index: 2;
+      line-height: 1;
+    }
+    .back-btn:active { background: rgba(255,255,255,0.25); }
     .header .sun { font-size: 38px; line-height: 1; display: block; margin-bottom: 8px; }
     .header h1 {
       color: var(--gold-lt);
@@ -270,6 +290,7 @@
 
 <!-- Шапка -->
 <div class="header">
+  <a class="back-btn" href="map.html" title="На карту">←</a>
   <span class="sun">🌞</span>
   <h1>Расписание</h1>
   <div class="sub">Солнечный круг · 2–5 июля 2026</div>
