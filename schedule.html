@@ -181,12 +181,12 @@ const DAYS = [
 
 // Локации: id, название, эмодзи, цвет полоски
 const LOCS = [
-  { id: 'kolo',     name: 'Коло',      emoji: '🏛', color: '#5ab0d1' },
-  { id: 'koster',   name: 'Костёр',    emoji: '🔥', color: '#ff7a6a' },
-  { id: 'polyana',  name: 'Поляна',    emoji: '🌿', color: '#6bd58f' },
-  { id: 'banya',    name: 'Баня',      emoji: '🛁', color: '#ffb454' },
-  { id: 'yarmarka', name: 'Ярмарка',   emoji: '🛍', color: '#c2a36b' },
-  { id: 'other',    name: 'Другое',    emoji: '📌', color: '#a8adcf' },
+  { id: 'kolo',     name: 'Коло',             emoji: '🎭', color: '#5ab0d1' },
+  { id: 'polyana',  name: 'Хороводная поляна', emoji: '🌿', color: '#6bd58f' },
+  { id: 'besedka',  name: 'Лунная беседка',   emoji: '🌙', color: '#c2a36b' },
+  { id: 'steklo',   name: 'Стекляшка',        emoji: '🪟', color: '#a8b4ff' },
+  { id: 'izba',     name: 'Изба',             emoji: '🏠', color: '#ff7a6a' },
+  { id: 'detskaya', name: 'Детская',           emoji: '👧', color: '#f9c74f' },
 ];
 
 // События
@@ -195,32 +195,25 @@ const LOCS = [
 // master: имя ведущего (можно оставить пустым)
 const EVENTS = [
   // ──── 2 июля (чт) ────────────────────────────────────────────
-  { day: 0, time: '12:00', title: 'Заезд, размещение', master: '', loc: 'other' },
-  { day: 0, time: '18:00', title: 'Открытие слёта', master: '', loc: 'kolo' },
-  { day: 0, time: '20:00', title: 'Вечерний круг знакомств', master: '', loc: 'koster' },
+  { day: 0, time: '12:00', title: 'Заезд, размещение', master: '', loc: 'kolo' },
+  { day: 0, time: '17:00', title: 'Общий сбор. Открытие слёта', master: '', loc: 'kolo' },
+  { day: 0, time: '18:30', title: 'Ужин', master: '', loc: 'kolo' },
 
   // ──── 3 июля (пт) ────────────────────────────────────────────
-  { day: 1, time: '09:00', title: 'Утренняя медитация', master: '', loc: 'polyana' },
-  { day: 1, time: '10:30', title: 'Мастер-класс (добавьте)', master: '', loc: 'kolo' },
-  { day: 1, time: '13:00', title: 'Обед', master: '', loc: 'other' },
-  { day: 1, time: '15:00', title: 'Мастер-класс (добавьте)', master: '', loc: 'polyana' },
-  { day: 1, time: '18:00', title: 'Баня / сауна', master: '', loc: 'banya' },
-  { day: 1, time: '20:30', title: 'Вечерний концерт', master: '', loc: 'kolo' },
+  { day: 1, time: '09:00', title: 'Мастер-класс (добавьте)', master: '', loc: 'polyana' },
+  { day: 1, time: '13:00', title: 'Обед', master: '', loc: 'kolo' },
+  { day: 1, time: '20:30', title: 'Вечерняя программа', master: '', loc: 'kolo' },
 
   // ──── 4 июля (сб, Купалье) ───────────────────────────────────
-  { day: 2, time: '09:00', title: 'Утренняя практика', master: '', loc: 'polyana' },
-  { day: 2, time: '10:30', title: 'Мастер-класс (добавьте)', master: '', loc: 'kolo' },
-  { day: 2, time: '13:00', title: 'Обед', master: '', loc: 'other' },
-  { day: 2, time: '15:00', title: 'Ярмарка народного творчества', master: '', loc: 'yarmarka' },
-  { day: 2, time: '18:00', title: 'Баня на дровах', master: '', loc: 'banya' },
-  { day: 2, time: '21:00', title: '🌙 Купалье — обряд у костра', master: '', loc: 'koster' },
+  { day: 2, time: '09:00', title: 'Мастер-класс (добавьте)', master: '', loc: 'polyana' },
+  { day: 2, time: '13:00', title: 'Обед', master: '', loc: 'kolo' },
+  { day: 2, time: '21:00', title: '🌙 Купалье — обряд у костра', master: '', loc: 'kolo' },
 
   // ──── 5 июля (вс) ────────────────────────────────────────────
-  { day: 3, time: '09:00', title: 'Утренняя медитация', master: '', loc: 'polyana' },
-  { day: 3, time: '10:30', title: 'Мастер-класс (добавьте)', master: '', loc: 'kolo' },
-  { day: 3, time: '13:00', title: 'Обед', master: '', loc: 'other' },
+  { day: 3, time: '09:00', title: 'Мастер-класс (добавьте)', master: '', loc: 'polyana' },
+  { day: 3, time: '13:00', title: 'Обед', master: '', loc: 'kolo' },
   { day: 3, time: '15:00', title: 'Закрытие слёта', master: '', loc: 'kolo' },
-  { day: 3, time: '17:00', title: 'Отъезд', master: '', loc: 'other' },
+  { day: 3, time: '17:00', title: 'Отъезд', master: '', loc: 'kolo' },
 ];
 
 // ═══════════════════════════════════════════════════════════════
