@@ -168,6 +168,8 @@
 const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); }
 
+const API_URL = 'https://solnechny-krug-bot-production.up.railway.app/api/schedule';
+
 // ═══════════════════════════════════════════════════════════════
 // НАСТРОЙКИ — заполните свои данные
 // ═══════════════════════════════════════════════════════════════
@@ -255,33 +257,36 @@ allLocs.forEach(loc => {
 
 // Рендер событий
 const eventsWrapEl = document.getElementById('events-wrap');
-DAYS.forEach((d, di) => {
-  const section = document.createElement('div');
-  section.className = 'day-section' + (di === 0 ? ' active' : '');
-  section.id = 'day-' + di;
-
-  const dayEvents = EVENTS.filter(e => e.day === di);
-  if (!dayEvents.length) {
-    section.innerHTML = '<div class="empty"><div class="icon">📋</div><p>Расписание появится позже</p></div>';
-  } else {
-    dayEvents.sort((a, b) => a.time.localeCompare(b.time));
-    dayEvents.forEach(ev => {
-      const loc = locMap[ev.loc] || locMap['other'];
-      const card = document.createElement('div');
-      card.className = 'event-card';
-      card.style.borderLeftColor = loc.color;
-      card.dataset.loc = ev.loc;
-      card.innerHTML = `
-        <div class="event-time">${ev.time}</div>
-        <div class="event-body">
-          <div class="event-title">${ev.title}</div>
-          ${ev.master ? `<div class="event-meta">${loc.emoji} ${loc.name} · ${ev.master}</div>` : `<div class="event-meta">${loc.emoji} ${loc.name}</div>`}
-        </div>`;
-      section.appendChild(card);
-    });
-  }
-  eventsWrapEl.appendChild(section);
-});
+function renderEvents(events) {
+  eventsWrapEl.innerHTML = '';
+  DAYS.forEach((d, di) => {
+    const section = document.createElement('div');
+    section.className = 'day-section' + (di === activeDayIdx ? ' active' : '');
+    section.id = 'day-' + di;
+    const dayEvents = events.filter(e => e.day === di);
+    if (!dayEvents.length) {
+      section.innerHTML = '<div class="empty"><div class="icon">📋</div><p>Расписание появится позже</p></div>';
+    } else {
+      dayEvents.sort((a, b) => a.time.localeCompare(b.time));
+      dayEvents.forEach(ev => {
+        const loc = locMap[ev.loc] || { emoji: '📌', name: ev.loc, color: '#a8adcf' };
+        const card = document.createElement('div');
+        card.className = 'event-card';
+        card.style.borderLeftColor = loc.color;
+        card.dataset.loc = ev.loc;
+        card.innerHTML = `
+          <div class="event-time">${ev.time}</div>
+          <div class="event-body">
+            <div class="event-title">${ev.title}</div>
+            <div class="event-meta">${loc.emoji} ${loc.name}${ev.master ? ' · ' + ev.master : ''}</div>
+          </div>`;
+        section.appendChild(card);
+      });
+    }
+    eventsWrapEl.appendChild(section);
+  });
+  applyLocFilter();
+}
 
 function setDay(idx) {
   activeDayIdx = idx;
@@ -307,10 +312,21 @@ function applyLocFilter() {
   });
 }
 
-// Если открыто из карты (?loc=id&day=N) — выбрать день и локацию
+// Загружаем из API, при ошибке — статика
+renderEvents(EVENTS);
 if (activeDayIdx !== 0) setDay(activeDayIdx);
 if (urlLoc !== 'all' && locMap[urlLoc]) setLoc(urlLoc);
-applyLocFilter();
+
+fetch(API_URL)
+  .then(r => r.json())
+  .then(data => {
+    if (data.events && data.events.length > 0) {
+      renderEvents(data.events);
+      if (activeDayIdx !== 0) setDay(activeDayIdx);
+      if (urlLoc !== 'all' && locMap[urlLoc]) setLoc(urlLoc);
+    }
+  })
+  .catch(() => {});
 </script>
 </body>
 </html>
