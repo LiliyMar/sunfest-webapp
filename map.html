@@ -114,6 +114,50 @@
     }
     #status.hidden { opacity:0; pointer-events:none; }
 
+    /* Bottom sheet — выбор дня */
+    #day-sheet {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: #1e3320;
+      border-radius: 20px 20px 0 0;
+      padding: 16px 16px 32px;
+      z-index: 200;
+      transform: translateY(100%);
+      transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+      box-shadow: 0 -4px 24px rgba(0,0,0,0.5);
+    }
+    #day-sheet.open { transform: translateY(0); }
+    #day-sheet-title {
+      color: #e8c870;
+      font-size: 15px; font-weight: 700;
+      font-family: -apple-system, sans-serif;
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    #day-sheet-days {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    .day-btn {
+      background: rgba(255,255,255,0.08);
+      border: 1.5px solid rgba(200,146,42,0.4);
+      border-radius: 12px;
+      color: #fdf6ec;
+      font-size: 14px; font-weight: 600;
+      font-family: -apple-system, sans-serif;
+      padding: 12px 8px;
+      text-align: center;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.15s;
+    }
+    .day-btn:active { background: rgba(200,146,42,0.3); }
+    .day-btn .sub { font-size: 11px; font-weight: 400; color: #a0b89a; display: block; margin-top: 2px; }
+    #day-sheet-overlay {
+      display: none; position: fixed; inset: 0; z-index: 199;
+      background: rgba(0,0,0,0.45);
+    }
+    #day-sheet-overlay.open { display: block; }
+
     /* Метки локаций */
     .loc-marker {
       position: absolute;
@@ -152,6 +196,12 @@
     <div id="ring"></div>
     <div id="dot"></div>
   </div>
+</div>
+
+<div id="day-sheet-overlay" onclick="closeDaySheet()"></div>
+<div id="day-sheet">
+  <div id="day-sheet-title"></div>
+  <div id="day-sheet-days"></div>
 </div>
 
 <div id="status" class="hidden">📍 Определяем местоположение…</div>
@@ -440,38 +490,59 @@ MAP_LOCS.forEach(loc => {
   el.style.left = (loc.px[0] / IMG_W * 100) + '%';
   el.style.top  = (loc.px[1] / IMG_H * 100) + '%';
 
-  let pressTimer, moved = false, startX = 0, startY = 0;
+  let moved = false, startX = 0, startY = 0;
 
   el.addEventListener('touchstart', e => {
     moved = false;
     startX = e.touches[0].clientX;
     startY = e.touches[0].clientY;
-    el.classList.add('pressing');
-    pressTimer = setTimeout(() => {
-      if (!moved) {
-        el.classList.remove('pressing');
-        window.location.href = `schedule.html?loc=${loc.id}`;
-      }
-    }, 500);
   }, { passive: true });
 
   el.addEventListener('touchmove', e => {
     const dx = Math.abs(e.touches[0].clientX - startX);
     const dy = Math.abs(e.touches[0].clientY - startY);
-    if (dx > 8 || dy > 8) { moved = true; clearTimeout(pressTimer); el.classList.remove('pressing'); }
+    if (dx > 8 || dy > 8) moved = true;
   }, { passive: true });
 
   el.addEventListener('touchend', () => {
-    clearTimeout(pressTimer); el.classList.remove('pressing');
+    if (!moved) openDaySheet(loc);
   }, { passive: true });
 
-  // Десктоп: обычный клик
-  el.addEventListener('click', () => {
-    window.location.href = `schedule.html?loc=${loc.id}`;
-  });
+  el.addEventListener('click', () => openDaySheet(loc));
 
   layer.appendChild(el);
 });
+
+const DAYS = [
+  { label: '2 июля', sub: 'чт' },
+  { label: '3 июля', sub: 'пт' },
+  { label: '4 июля', sub: 'сб ☀️' },
+  { label: '5 июля', sub: 'вс' },
+];
+
+function openDaySheet(loc) {
+  const sheet = document.getElementById('day-sheet');
+  const overlay = document.getElementById('day-sheet-overlay');
+  document.getElementById('day-sheet-title').textContent = loc.name;
+  const daysEl = document.getElementById('day-sheet-days');
+  daysEl.innerHTML = '';
+  DAYS.forEach((d, i) => {
+    const btn = document.createElement('div');
+    btn.className = 'day-btn';
+    btn.innerHTML = `${d.label}<span class="sub">${d.sub}</span>`;
+    btn.onclick = () => {
+      window.location.href = `schedule.html?loc=${loc.id}&day=${i}`;
+    };
+    daysEl.appendChild(btn);
+  });
+  overlay.classList.add('open');
+  requestAnimationFrame(() => sheet.classList.add('open'));
+}
+
+function closeDaySheet() {
+  document.getElementById('day-sheet').classList.remove('open');
+  document.getElementById('day-sheet-overlay').classList.remove('open');
+}
 
 // Первичная отрисовка — после того как объявлены dot/ring/lastLat
 fitView();

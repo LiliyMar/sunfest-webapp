@@ -221,10 +221,12 @@ const EVENTS = [
 // Логика — не менять
 // ═══════════════════════════════════════════════════════════════
 
-// URL-параметр ?loc=id для открытия из карты
-const urlLoc = new URLSearchParams(location.search).get('loc') || 'all';
+// URL-параметры ?loc=id&day=N для открытия из карты
+const params = new URLSearchParams(location.search);
+const urlLoc = params.get('loc') || 'all';
+const urlDay = parseInt(params.get('day') ?? '0', 10);
 
-let activeDayIdx = 0;
+let activeDayIdx = (urlDay >= 0 && urlDay < DAYS.length) ? urlDay : 0;
 let activeLoc = urlLoc;
 
 const locMap = Object.fromEntries(LOCS.map(l => [l.id, l]));
@@ -305,10 +307,9 @@ function applyLocFilter() {
   });
 }
 
-// Если открыто из карты (?loc=id) — показать нужную локацию
-if (urlLoc !== 'all' && locMap[urlLoc]) {
-  setLoc(urlLoc);
-}
+// Если открыто из карты (?loc=id&day=N) — выбрать день и локацию
+if (activeDayIdx !== 0) setDay(activeDayIdx);
+if (urlLoc !== 'all' && locMap[urlLoc]) setLoc(urlLoc);
 applyLocFilter();
 </script>
 </body>
