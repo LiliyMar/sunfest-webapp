@@ -114,49 +114,71 @@
     }
     #status.hidden { opacity:0; pointer-events:none; }
 
-    /* Bottom sheet — выбор дня */
-    #day-sheet {
+    /* Всплывающая карточка локации */
+    #loc-sheet {
       position: fixed; bottom: 0; left: 0; right: 0;
       background: #1e3320;
       border-radius: 20px 20px 0 0;
-      padding: 16px 16px 32px;
+      padding: 18px 18px 36px;
       z-index: 200;
       transform: translateY(100%);
       transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
       box-shadow: 0 -4px 24px rgba(0,0,0,0.5);
-    }
-    #day-sheet.open { transform: translateY(0); }
-    #day-sheet-title {
-      color: #e8c870;
-      font-size: 15px; font-weight: 700;
       font-family: -apple-system, sans-serif;
-      text-align: center;
-      margin-bottom: 14px;
     }
-    #day-sheet-days {
-      display: grid; grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-    .day-btn {
-      background: rgba(255,255,255,0.08);
-      border: 1.5px solid rgba(200,146,42,0.4);
-      border-radius: 12px;
-      color: #fdf6ec;
-      font-size: 14px; font-weight: 600;
-      font-family: -apple-system, sans-serif;
-      padding: 12px 8px;
-      text-align: center;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      transition: background 0.15s;
-    }
-    .day-btn:active { background: rgba(200,146,42,0.3); }
-    .day-btn .sub { font-size: 11px; font-weight: 400; color: #a0b89a; display: block; margin-top: 2px; }
-    #day-sheet-overlay {
+    #loc-sheet.open { transform: translateY(0); }
+    #loc-sheet-overlay {
       display: none; position: fixed; inset: 0; z-index: 199;
       background: rgba(0,0,0,0.45);
     }
-    #day-sheet-overlay.open { display: block; }
+    #loc-sheet-overlay.open { display: block; }
+
+    #loc-sheet-title {
+      color: #e8c870;
+      font-size: 16px; font-weight: 700;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .loc-event-block {
+      background: rgba(255,255,255,0.07);
+      border-radius: 12px;
+      padding: 12px 14px;
+      margin-bottom: 10px;
+    }
+    .loc-event-label {
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 0.6px; text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+    .loc-event-label.now  { color: #ff7a6a; }
+    .loc-event-label.next { color: #a0b89a; }
+    .loc-event-time {
+      font-size: 12px; color: #a0b89a; margin-bottom: 2px;
+    }
+    .loc-event-title {
+      font-size: 15px; font-weight: 600; color: #fdf6ec;
+      line-height: 1.35;
+    }
+    .loc-event-master {
+      font-size: 12px; color: #c8922a; margin-top: 3px;
+    }
+    .loc-no-events {
+      text-align: center; color: #a0b89a;
+      font-size: 14px; padding: 10px 0 4px;
+    }
+    #loc-sheet-link {
+      display: block; margin-top: 14px;
+      background: rgba(200,146,42,0.18);
+      border: 1.5px solid rgba(200,146,42,0.5);
+      border-radius: 12px;
+      color: #e8c870;
+      font-size: 14px; font-weight: 600;
+      text-align: center;
+      padding: 11px;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #loc-sheet-link:active { background: rgba(200,146,42,0.3); }
 
     /* Метки локаций */
     .loc-marker {
@@ -198,10 +220,11 @@
   </div>
 </div>
 
-<div id="day-sheet-overlay" onclick="closeDaySheet()"></div>
-<div id="day-sheet">
-  <div id="day-sheet-title"></div>
-  <div id="day-sheet-days"></div>
+<div id="loc-sheet-overlay" onclick="closeLocSheet()"></div>
+<div id="loc-sheet">
+  <div id="loc-sheet-title"></div>
+  <div id="loc-sheet-body"></div>
+  <div id="loc-sheet-link" onclick="openFullSchedule()">📅 Полное расписание</div>
 </div>
 
 <div id="status" class="hidden">📍 Определяем местоположение…</div>
@@ -505,43 +528,125 @@ MAP_LOCS.forEach(loc => {
   }, { passive: true });
 
   el.addEventListener('touchend', () => {
-    if (!moved) openDaySheet(loc);
+    if (!moved) openLocSheet(loc);
   }, { passive: true });
 
-  el.addEventListener('click', () => openDaySheet(loc));
+  el.addEventListener('click', () => openLocSheet(loc));
 
   layer.appendChild(el);
 });
 
-const DAYS = [
-  { label: '2 июля', sub: 'чт' },
-  { label: '3 июля', sub: 'пт' },
-  { label: '4 июля', sub: 'сб ☀️' },
-  { label: '5 июля', sub: 'вс' },
-];
+// ── Расписание ──────────────────────────────────────────────────
+const API_URL = 'https://solnechny-krug-bot-production.up.railway.app/api/schedule';
+// Даты фестиваля → индекс дня
+const FEST_DAYS = { '2026-07-02': 0, '2026-07-03': 1, '2026-07-04': 2, '2026-07-05': 3 };
 
-function openDaySheet(loc) {
-  const sheet = document.getElementById('day-sheet');
-  const overlay = document.getElementById('day-sheet-overlay');
-  document.getElementById('day-sheet-title').textContent = loc.name;
-  const daysEl = document.getElementById('day-sheet-days');
-  daysEl.innerHTML = '';
-  DAYS.forEach((d, i) => {
-    const btn = document.createElement('div');
-    btn.className = 'day-btn';
-    btn.innerHTML = `${d.label}<span class="sub">${d.sub}</span>`;
-    btn.onclick = () => {
-      window.location.href = `schedule.html?loc=${loc.id}&day=${i}`;
-    };
-    daysEl.appendChild(btn);
-  });
-  overlay.classList.add('open');
-  requestAnimationFrame(() => sheet.classList.add('open'));
+let _scheduleCache = null;
+let _currentLocId  = null;
+
+async function loadSchedule() {
+  if (_scheduleCache) return _scheduleCache;
+  try {
+    const r = await fetch(API_URL);
+    const d = await r.json();
+    _scheduleCache = d.events || [];
+  } catch {
+    _scheduleCache = [];
+  }
+  return _scheduleCache;
 }
 
-function closeDaySheet() {
-  document.getElementById('day-sheet').classList.remove('open');
-  document.getElementById('day-sheet-overlay').classList.remove('open');
+function getCurrentDayIdx() {
+  const now = new Date();
+  const key = now.toISOString().slice(0, 10);
+  return FEST_DAYS[key] ?? -1;
+}
+
+function timeToMin(t) {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + m;
+}
+
+function openLocSheet(loc) {
+  _currentLocId = loc.id;
+  document.getElementById('loc-sheet-title').textContent = loc.name;
+  document.getElementById('loc-sheet-body').innerHTML =
+    '<div class="loc-no-events">Загружаем…</div>';
+  document.getElementById('loc-sheet-overlay').classList.add('open');
+  requestAnimationFrame(() => document.getElementById('loc-sheet').classList.add('open'));
+
+  loadSchedule().then(events => {
+    const dayIdx = getCurrentDayIdx();
+    const body = document.getElementById('loc-sheet-body');
+    if (!body) return;
+
+    // Фильтруем по локации и текущему дню
+    let dayEvents = events.filter(e => e.loc === loc.id && e.day === dayIdx);
+
+    if (dayIdx === -1 || dayEvents.length === 0) {
+      // Вне фестиваля или нет событий — показываем ближайшие события
+      dayEvents = events.filter(e => e.loc === loc.id);
+      if (dayEvents.length === 0) {
+        body.innerHTML = '<div class="loc-no-events">Событий не запланировано</div>';
+        return;
+      }
+      // Берём первый день с событиями
+      const minDay = Math.min(...dayEvents.map(e => e.day));
+      dayEvents = dayEvents.filter(e => e.day === minDay).sort((a, b) => a.time.localeCompare(b.time));
+      body.innerHTML = dayEvents.slice(0, 3).map(ev =>
+        `<div class="loc-event-block">
+          <div class="loc-event-time">${ev.time}</div>
+          <div class="loc-event-title">${ev.title}</div>
+          ${ev.master ? `<div class="loc-event-master">${ev.master}</div>` : ''}
+        </div>`
+      ).join('');
+      return;
+    }
+
+    // Во время фестиваля — ищем текущее и следующее
+    const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+    dayEvents.sort((a, b) => a.time.localeCompare(b.time));
+
+    let current = null, next = null;
+    for (let i = 0; i < dayEvents.length; i++) {
+      const ev = dayEvents[i];
+      const evMin = timeToMin(ev.time);
+      const nextMin = dayEvents[i + 1] ? timeToMin(dayEvents[i + 1].time) : 24 * 60;
+      if (evMin <= nowMin && nowMin < nextMin) { current = ev; next = dayEvents[i + 1] || null; break; }
+      if (evMin > nowMin && !next) { next = ev; }
+    }
+
+    let html = '';
+    if (current) {
+      html += `<div class="loc-event-block">
+        <div class="loc-event-label now">🔴 Сейчас</div>
+        <div class="loc-event-time">${current.time}</div>
+        <div class="loc-event-title">${current.title}</div>
+        ${current.master ? `<div class="loc-event-master">${current.master}</div>` : ''}
+      </div>`;
+    }
+    if (next) {
+      html += `<div class="loc-event-block">
+        <div class="loc-event-label next">⏭ Следующее</div>
+        <div class="loc-event-time">${next.time}</div>
+        <div class="loc-event-title">${next.title}</div>
+        ${next.master ? `<div class="loc-event-master">${next.master}</div>` : ''}
+      </div>`;
+    }
+    if (!current && !next) {
+      html = '<div class="loc-no-events">На сегодня события завершены</div>';
+    }
+    body.innerHTML = html;
+  });
+}
+
+function closeLocSheet() {
+  document.getElementById('loc-sheet').classList.remove('open');
+  document.getElementById('loc-sheet-overlay').classList.remove('open');
+}
+
+function openFullSchedule() {
+  if (_currentLocId) window.location.href = `schedule.html?loc=${_currentLocId}`;
 }
 
 // Первичная отрисовка — после того как объявлены dot/ring/lastLat
