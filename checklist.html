@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>Что взять на фестиваль</title>
+<script>
+  window.Telegram?.WebApp?.expand();
+  window.Telegram?.WebApp?.ready();
+</script>
+<style>
+  :root {
+    --forest: #1e3d24;
+    --forest2: #2d5035;
+    --gold: #c8922a;
+    --gold-lt: #f0c060;
+    --cream: #f5f0e8;
+    --border: #e2d9c8;
+    --muted: #888;
+    --checked-bg: #eef7ee;
+    --checked-text: #5a8a5a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--cream);
+    color: #2a2a2a;
+    min-height: 100vh;
+    padding-bottom: 32px;
+  }
+
+  /* ══ ШАПКА ══ */
+  .header {
+    background: linear-gradient(160deg, #162b1a 0%, #2d5035 55%, #1e4a28 100%);
+    padding: 22px 16px 32px;
+    text-align: center;
+    position: relative;
+  }
+  .header::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 24px;
+    background: var(--cream);
+    border-radius: 24px 24px 0 0;
+  }
+  .back-btn {
+    position: absolute;
+    top: 14px; left: 14px;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.12);
+    border: none;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    color: var(--gold-lt);
+    font-size: 20px;
+    text-decoration: none;
+    z-index: 2;
+    line-height: 1;
+  }
+  .back-btn:active { background: rgba(255,255,255,0.25); }
+  .header .icon { font-size: 38px; line-height: 1; display: block; margin-bottom: 8px; }
+  .header h1 { color: var(--gold-lt); font-size: 20px; font-weight: 700; }
+  .header .sub { color: #90b898; font-size: 12px; margin-top: 4px; }
+
+  /* ══ ПРОГРЕСС ══ */
+  .progress-wrap {
+    padding: 16px 16px 8px;
+  }
+  .progress-label {
+    display: flex; justify-content: space-between;
+    font-size: 13px; color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .progress-label strong { color: #2a2a2a; }
+  .progress-bar-bg {
+    height: 8px; border-radius: 4px;
+    background: var(--border);
+    overflow: hidden;
+  }
+  .progress-bar-fill {
+    height: 100%; border-radius: 4px;
+    background: linear-gradient(to right, #4a9a5a, #6bd58f);
+    transition: width .35s ease;
+  }
+
+  /* ══ RESET ══ */
+  .reset-btn {
+    display: block; margin: 0 16px 4px auto;
+    background: none; border: none;
+    font-size: 12px; color: var(--muted);
+    cursor: pointer; padding: 4px 0;
+  }
+  .reset-btn:active { color: #c0392b; }
+
+  /* ══ СЕКЦИИ ══ */
+  .section {
+    margin: 12px 16px 0;
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  }
+  .section-header {
+    padding: 12px 16px 10px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-emoji { font-size: 18px; }
+  .section-title { font-size: 15px; font-weight: 700; }
+  .section-count { margin-left: auto; font-size: 12px; color: var(--muted); }
+
+  /* ══ ЭЛЕМЕНТЫ ══ */
+  .item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px;
+    border-bottom: 1px solid #f2ede3;
+    cursor: pointer;
+    user-select: none;
+    transition: background .15s;
+  }
+  .item:last-child { border-bottom: none; }
+  .item:active { background: #f9f5ed; }
+  .item.done { background: var(--checked-bg); }
+
+  .cb {
+    width: 22px; height: 22px; flex-shrink: 0;
+    border-radius: 6px;
+    border: 2px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+    background: white;
+  }
+  .item.done .cb {
+    background: #4a9a5a;
+    border-color: #4a9a5a;
+  }
+  .cb::after {
+    content: '';
+    display: none;
+    width: 5px; height: 9px;
+    border: 2px solid white;
+    border-top: none; border-left: none;
+    transform: rotate(45deg) translate(-1px, -1px);
+  }
+  .item.done .cb::after { display: block; }
+
+  .item-text { flex: 1; }
+  .item-name {
+    font-size: 15px;
+    transition: color .15s;
+  }
+  .item.done .item-name {
+    color: var(--checked-text);
+    text-decoration: line-through;
+    text-decoration-color: #90b898;
+  }
+  .item-note { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  /* ══ ЗВЁЗДОЧКА (обязательно) ══ */
+  .must { color: #e07b54; font-size: 11px; margin-left: 3px; }
+
+  /* ══ ВСЁЧЁ ГОТОВО ══ */
+  .all-done {
+    margin: 20px 16px 0;
+    padding: 20px;
+    background: linear-gradient(135deg, #1e3d24, #2d5035);
+    border-radius: 16px;
+    text-align: center;
+    color: white;
+    display: none;
+  }
+  .all-done .icon { font-size: 40px; margin-bottom: 8px; }
+  .all-done h2 { font-size: 18px; color: var(--gold-lt); margin-bottom: 6px; }
+  .all-done p { font-size: 13px; color: #90b898; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <a class="back-btn" href="map.html" title="На карту">←</a>
+  <span class="icon">🎒</span>
+  <h1>Что взять с собой</h1>
+  <div class="sub">Солнечный круг · 2–5 июля 2026</div>
+</div>
+
+<div class="progress-wrap">
+  <div class="progress-label">
+    <span>Собрано</span>
+    <strong id="prog-text">0 из 0</strong>
+  </div>
+  <div class="progress-bar-bg">
+    <div class="progress-bar-fill" id="prog-fill" style="width:0%"></div>
+  </div>
+</div>
+<button class="reset-btn" onclick="resetAll()">сбросить всё</button>
+
+<div id="list"></div>
+
+<div class="all-done" id="all-done">
+  <div class="icon">🌞</div>
+  <h2>Всё готово!</h2>
+  <p>Ждём вас на Солнечном круге</p>
+</div>
+
+<script>
+const SECTIONS = [
+  {
+    emoji: '📄', title: 'Документы',
+    items: [
+      { name: 'Паспорт / ID-карта', must: true },
+    ]
+  },
+  {
+    emoji: '💰', title: 'Деньги',
+    items: [
+      { name: 'Наличные рубли', note: 'баня, ярмарка, сувениры', must: true },
+      { name: 'Банковская карта' },
+    ]
+  },
+  {
+    emoji: '👗', title: 'Одежда',
+    items: [
+      { name: 'Удобная одежда для практик', note: 'на несколько дней', must: true },
+      { name: 'Белая рубаха или платье', note: 'для Купалья (традиция)', must: true },
+      { name: 'Тёплая кофта или куртка', note: 'вечера в лесу могут быть прохладными' },
+      { name: 'Дождевик или плащ' },
+      { name: 'Купальник / плавки', note: 'для бани или купания' },
+      { name: 'Удобная обувь для природы', note: 'кроссовки или треккинговые', must: true },
+      { name: 'Сменные носки', note: 'несколько пар' },
+      { name: 'Головной убор', note: 'от солнца' },
+    ]
+  },
+  {
+    emoji: '🛏', title: 'Ночлег',
+    items: [
+      { name: 'Палатка', note: 'если ночуете в своей' },
+      { name: 'Спальник' },
+      { name: 'Коврик-каремат' },
+      { name: 'Подушка' },
+      { name: 'Фонарик или налобный фонарь', must: true },
+    ]
+  },
+  {
+    emoji: '🧴', title: 'Гигиена',
+    items: [
+      { name: 'Полотенце', must: true },
+      { name: 'Мыло, шампунь, зубная щётка' },
+      { name: 'Крем от солнца' },
+      { name: 'Средство от комаров', must: true },
+      { name: 'Туалетная бумага' },
+    ]
+  },
+  {
+    emoji: '🧘', title: 'Для практик',
+    items: [
+      { name: 'Коврик для йоги / медитации' },
+      { name: 'Плед или покрывало' },
+      { name: 'Блокнот и ручка', note: 'для заметок на мастер-классах' },
+    ]
+  },
+  {
+    emoji: '🍶', title: 'Посуда и напитки',
+    items: [
+      { name: 'Многоразовая бутылка для воды', must: true },
+      { name: 'Термос' },
+      { name: 'Миска, кружка, ложка', note: 'если берёте еду с собой' },
+    ]
+  },
+  {
+    emoji: '🩹', title: 'Аптечка',
+    items: [
+      { name: 'Личные лекарства' },
+      { name: 'Пластырь и бинт' },
+      { name: 'Обезболивающее, антигистаминное' },
+    ]
+  },
+  {
+    emoji: '💡', title: 'Гаджеты и прочее',
+    items: [
+      { name: 'Зарядка и кабель для телефона', must: true },
+      { name: 'Пауэрбанк' },
+      { name: 'Пакеты для мусора', note: 'оставим природу чистой' },
+    ]
+  },
+];
+
+const STORAGE_KEY = 'solkrug_checklist_v1';
+
+function loadState() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; }
+}
+function saveState(state) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+let state = loadState();
+
+function itemKey(si, ii) { return `${si}_${ii}`; }
+
+function render() {
+  const container = document.getElementById('list');
+  container.innerHTML = '';
+  let total = 0, done = 0;
+
+  SECTIONS.forEach((sec, si) => {
+    const sectionDiv = document.createElement('div');
+    sectionDiv.className = 'section';
+
+    const secDone = sec.items.filter((_, ii) => state[itemKey(si, ii)]).length;
+    total += sec.items.length;
+    done += secDone;
+
+    sectionDiv.innerHTML = `
+      <div class="section-header">
+        <span class="section-emoji">${sec.emoji}</span>
+        <span class="section-title">${sec.title}</span>
+        <span class="section-count">${secDone}/${sec.items.length}</span>
+      </div>
+    `;
+
+    sec.items.forEach((item, ii) => {
+      const key = itemKey(si, ii);
+      const checked = !!state[key];
+      const el = document.createElement('div');
+      el.className = 'item' + (checked ? ' done' : '');
+      el.innerHTML = `
+        <div class="cb"></div>
+        <div class="item-text">
+          <div class="item-name">${item.name}${item.must ? '<span class="must">●</span>' : ''}</div>
+          ${item.note ? `<div class="item-note">${item.note}</div>` : ''}
+        </div>
+      `;
+      el.addEventListener('click', () => toggle(si, ii));
+      sectionDiv.appendChild(el);
+    });
+
+    container.appendChild(sectionDiv);
+  });
+
+  updateProgress(done, total);
+}
+
+function toggle(si, ii) {
+  const key = itemKey(si, ii);
+  state[key] = !state[key];
+  saveState(state);
+  render();
+}
+
+function resetAll() {
+  state = {};
+  saveState(state);
+  render();
+}
+
+function updateProgress(done, total) {
+  const pct = total ? Math.round(done / total * 100) : 0;
+  document.getElementById('prog-fill').style.width = pct + '%';
+  document.getElementById('prog-text').textContent = `${done} из ${total}`;
+  document.getElementById('all-done').style.display = (done === total && total > 0) ? 'block' : 'none';
+}
+
+render();
+</script>
+</body>
+</html>
