@@ -656,7 +656,7 @@ async function loadAndRender() {
       if (data.products && data.products.length > 0) {
         // Объединяем: новые из бота + старые статичные
         const staticProducts = (window.YARMARKET_CONFIG || {}).products || [];
-        window.YARMARKET_CONFIG = { products: [...data.products, ...staticProducts] };
+        window.YARMARKET_CONFIG = { products: [...staticProducts, ...data.products] };
       }
     }
   } catch (e) {
