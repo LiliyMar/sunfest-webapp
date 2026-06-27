@@ -113,6 +113,47 @@
       transition: opacity 0.4s;
     }
     #status.hidden { opacity:0; pointer-events:none; }
+
+    /* Метки локаций */
+    .loc-marker {
+      position: absolute;
+      transform: translate(-50%, -100%);
+      display: flex; flex-direction: column; align-items: center;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      z-index: 10;
+    }
+    .loc-pin {
+      width: 30px; height: 30px;
+      border-radius: 50% 50% 50% 0;
+      transform: rotate(-45deg);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.45);
+      font-size: 13px;
+    }
+    .loc-pin span { transform: rotate(45deg); display: block; }
+    .loc-label {
+      background: rgba(0,0,0,0.72);
+      color: #fff;
+      font-size: 10px;
+      font-family: -apple-system, sans-serif;
+      font-weight: 600;
+      padding: 2px 7px;
+      border-radius: 8px;
+      white-space: nowrap;
+      margin-top: 3px;
+      letter-spacing: 0.2px;
+    }
+    /* Пульс при долгом нажатии */
+    .loc-marker.pressing .loc-pin {
+      animation: loc-pulse 0.5s ease-out forwards;
+    }
+    @keyframes loc-pulse {
+      0%   { transform: rotate(-45deg) scale(1); }
+      50%  { transform: rotate(-45deg) scale(1.35); }
+      100% { transform: rotate(-45deg) scale(1); }
+    }
   </style>
 </head>
 <body>
@@ -390,6 +431,58 @@ if (lm) {
 } else {
   startBrowserGeo();       // старый Telegram или внешний браузер
 }
+
+// ── Локации на карте ──────────────────────────────────────────────
+// px: [x, y] — пиксели на исходном изображении 941×1672
+// Чтобы передвинуть метку — измените числа в px
+const MAP_LOCS = [
+  { id: 'kolo',     name: 'Коло',      emoji: '🏛', color: '#5ab0d1', px: [407, 823]  },
+  { id: 'koster',   name: 'Костёр',    emoji: '🔥', color: '#ff7a6a', px: [290, 950]  },
+  { id: 'polyana',  name: 'Поляна',    emoji: '🌿', color: '#6bd58f', px: [350, 650]  },
+  { id: 'banya',    name: 'Баня',      emoji: '🛁', color: '#ffb454', px: [530, 430]  },
+  { id: 'yarmarka', name: 'Ярмарка',   emoji: '🛍', color: '#c2a36b', px: [480, 750]  },
+  { id: 'other',    name: 'Домики',    emoji: '🏠', color: '#a8adcf', px: [650, 118]  },
+];
+
+MAP_LOCS.forEach(loc => {
+  const el = document.createElement('div');
+  el.className = 'loc-marker';
+  el.innerHTML = `<div class="loc-pin" style="background:${loc.color}"><span>${loc.emoji}</span></div><div class="loc-label">${loc.name}</div>`;
+  el.style.left = (loc.px[0] / IMG_W * 100) + '%';
+  el.style.top  = (loc.px[1] / IMG_H * 100) + '%';
+
+  let pressTimer, moved = false, startX = 0, startY = 0;
+
+  el.addEventListener('touchstart', e => {
+    moved = false;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    el.classList.add('pressing');
+    pressTimer = setTimeout(() => {
+      if (!moved) {
+        el.classList.remove('pressing');
+        window.location.href = `schedule.html?loc=${loc.id}`;
+      }
+    }, 500);
+  }, { passive: true });
+
+  el.addEventListener('touchmove', e => {
+    const dx = Math.abs(e.touches[0].clientX - startX);
+    const dy = Math.abs(e.touches[0].clientY - startY);
+    if (dx > 8 || dy > 8) { moved = true; clearTimeout(pressTimer); el.classList.remove('pressing'); }
+  }, { passive: true });
+
+  el.addEventListener('touchend', () => {
+    clearTimeout(pressTimer); el.classList.remove('pressing');
+  }, { passive: true });
+
+  // Десктоп: обычный клик
+  el.addEventListener('click', () => {
+    window.location.href = `schedule.html?loc=${loc.id}`;
+  });
+
+  layer.appendChild(el);
+});
 
 // Первичная отрисовка — после того как объявлены dot/ring/lastLat
 fitView();
