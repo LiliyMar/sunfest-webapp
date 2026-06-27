@@ -652,10 +652,14 @@ async function loadAndRender() {
   try {
     const resp = await fetch(YARMARKET_API);
     if (resp.ok) {
-      window.YARMARKET_CONFIG = await resp.json();
+      const data = await resp.json();
+      // Используем API только если там есть товары; иначе остаётся статичный конфиг
+      if (data.products && data.products.length > 0) {
+        window.YARMARKET_CONFIG = data;
+      }
     }
   } catch (e) {
-    console.error('Не удалось загрузить товары:', e);
+    console.error('Не удалось загрузить товары из API, используем статичный конфиг:', e);
   }
   renderGrid();
 }
