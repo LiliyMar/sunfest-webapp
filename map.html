@@ -541,6 +541,8 @@ MAP_LOCS.forEach(loc => {
 const API_URL = 'https://solnechny-krug-bot-production.up.railway.app/api/schedule';
 // Даты фестиваля → индекс дня
 const FEST_DAYS = { '2026-07-02': 0, '2026-07-03': 1, '2026-07-04': 2, '2026-07-05': 3 };
+const DAY_LABELS = ['2 июля', '3 июля', '4 июля', '5 июля'];
+const FULL_SCHEDULE_LOCS = ['banya', 'stolovaya'];
 
 let _scheduleCache = null;
 let _currentLocId  = null;
@@ -581,19 +583,42 @@ function openLocSheet(loc) {
     const body = document.getElementById('loc-sheet-body');
     if (!body) return;
 
-    // Фильтруем по локации и текущему дню
-    let dayEvents = events.filter(e => e.loc === loc.id && e.day === dayIdx);
+    const locEvents = events.filter(e => e.loc === loc.id);
+    if (locEvents.length === 0) {
+      body.innerHTML = '<div class="loc-no-events">Событий не запланировано</div>';
+      return;
+    }
+
+    // Для локаций с небольшим расписанием — показываем всё по дням
+    if (FULL_SCHEDULE_LOCS.includes(loc.id)) {
+      const nowMin = new Date().getHours() * 60 + new Date().getMinutes();
+      let html = '';
+      for (let d = 0; d < DAY_LABELS.length; d++) {
+        const dayEvs = locEvents.filter(e => e.day === d).sort((a, b) => a.time.localeCompare(b.time));
+        if (!dayEvs.length) continue;
+        html += `<div style="font-size:12px;font-weight:700;color:var(--tg-theme-hint-color,#888);text-transform:uppercase;letter-spacing:.05em;margin:12px 0 4px;">${DAY_LABELS[d]}</div>`;
+        dayEvs.forEach(ev => {
+          const isNow = d === dayIdx && timeToMin(ev.time) <= nowMin &&
+            (() => { const idx = dayEvs.indexOf(ev); return idx === dayEvs.length - 1 || timeToMin(dayEvs[idx + 1].time) > nowMin; })();
+          html += `<div class="loc-event-block" style="${isNow ? 'border-left:3px solid #e74c3c;padding-left:9px;' : ''}">
+            ${isNow ? '<div class="loc-event-label now">🔴 Сейчас</div>' : ''}
+            <div class="loc-event-time">${ev.time}</div>
+            <div class="loc-event-title">${ev.title}</div>
+            ${ev.master ? `<div class="loc-event-master">${ev.master}</div>` : ''}
+          </div>`;
+        });
+      }
+      body.innerHTML = html;
+      return;
+    }
+
+    // Для остальных локаций — текущее и следующее
+    let dayEvents = locEvents.filter(e => e.day === dayIdx);
 
     if (dayIdx === -1 || dayEvents.length === 0) {
       // Вне фестиваля или нет событий — показываем ближайшие события
-      dayEvents = events.filter(e => e.loc === loc.id);
-      if (dayEvents.length === 0) {
-        body.innerHTML = '<div class="loc-no-events">Событий не запланировано</div>';
-        return;
-      }
-      // Берём первый день с событиями
-      const minDay = Math.min(...dayEvents.map(e => e.day));
-      dayEvents = dayEvents.filter(e => e.day === minDay).sort((a, b) => a.time.localeCompare(b.time));
+      const minDay = Math.min(...locEvents.map(e => e.day));
+      dayEvents = locEvents.filter(e => e.day === minDay).sort((a, b) => a.time.localeCompare(b.time));
       body.innerHTML = dayEvents.slice(0, 3).map(ev =>
         `<div class="loc-event-block">
           <div class="loc-event-time">${ev.time}</div>
