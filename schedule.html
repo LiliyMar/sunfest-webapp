@@ -7,14 +7,17 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --forest: #1e3320;
-      --gold:   #c8922a;
-      --gold-lt:#e8c870;
-      --cream:  #fdf6ec;
-      --text:   #2a1f10;
-      --muted:  #7a6a55;
-      --border: #e0cfa8;
-      --radius: 12px;
+      --forest:  #1a3320;
+      --forest2: #2d5035;
+      --gold:    #c8922a;
+      --gold-lt: #e8c870;
+      --cream:   #fdf6ec;
+      --warm:    #fef9f2;
+      --text:    #2a1f10;
+      --muted:   #7a6a55;
+      --border:  #e0cfa8;
+      --radius:  12px;
+      --shadow:  0 2px 10px rgba(42,31,16,0.07);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
     body {
@@ -22,147 +25,268 @@
       background: var(--cream);
       color: var(--text);
       min-height: 100vh;
-      padding-bottom: 40px;
+      padding-bottom: 48px;
     }
 
-    /* Шапка */
+    /* ═══ ШАПКА ═══ */
     .header {
-      background: var(--forest);
-      color: var(--gold-lt);
+      background: linear-gradient(160deg, #162b1a 0%, #2d5035 55%, #1e4a28 100%);
+      padding: 22px 16px 32px;
       text-align: center;
-      padding: 14px 16px 12px;
+      position: relative;
+    }
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 24px;
+      background: var(--cream);
+      border-radius: 24px 24px 0 0;
+    }
+    .header .sun { font-size: 38px; line-height: 1; display: block; margin-bottom: 8px; }
+    .header h1 {
+      color: var(--gold-lt);
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+    .header .sub {
+      color: #90b898;
+      font-size: 12px;
+      margin-top: 4px;
+    }
+
+    /* ═══ STICKY-БЛОК (дни + фильтр) ═══ */
+    .sticky-top {
       position: sticky;
       top: 0;
-      z-index: 30;
+      z-index: 40;
+      background: var(--cream);
+      padding-bottom: 2px;
     }
-    .header h1 { font-size: 16px; font-weight: 700; letter-spacing: 0.4px; }
-    .header .sub { font-size: 11px; color: #a0b89a; margin-top: 2px; }
 
-    /* Дни — табы */
+    /* ═══ ТАБЫ ДНЕЙ ═══ */
     .day-tabs {
       display: flex;
-      background: var(--forest);
-      border-bottom: 2px solid var(--gold);
-      position: sticky;
-      top: 56px;
-      z-index: 29;
+      padding: 10px 12px 8px;
+      gap: 8px;
       overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
       scrollbar-width: none;
     }
     .day-tabs::-webkit-scrollbar { display: none; }
     .day-tab {
-      flex: 0 0 auto;
-      padding: 9px 18px;
-      color: #a0b89a;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-      border-bottom: 3px solid transparent;
-      transition: color 0.15s, border-color 0.15s;
-      line-height: 1.3;
+      flex: 1;
+      min-width: 68px;
+      padding: 9px 6px 10px;
+      border-radius: 14px;
       text-align: center;
-    }
-    .day-tab .sub { font-size: 10px; font-weight: 400; display: block; }
-    .day-tab.active { color: var(--gold-lt); border-bottom-color: var(--gold); }
-
-    /* Фильтр локаций */
-    .loc-filter {
-      display: flex;
-      gap: 8px;
-      padding: 10px 14px;
-      overflow-x: auto;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
+      cursor: pointer;
       background: white;
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 96px;
-      z-index: 28;
+      border: 2px solid var(--border);
+      transition: all 0.18s;
+      user-select: none;
+      -webkit-user-select: none;
     }
-    .loc-filter::-webkit-scrollbar { display: none; }
+    .day-tab .d-num {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--muted);
+      line-height: 1;
+    }
+    .day-tab .d-month {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+    .day-tab .d-sub {
+      font-size: 10px;
+      font-weight: 600;
+      color: #bbb;
+      margin-top: 2px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+    }
+    .day-tab.active {
+      background: var(--forest);
+      border-color: var(--forest);
+      box-shadow: 0 4px 14px rgba(26,51,32,0.35);
+    }
+    .day-tab.active .d-num   { color: var(--gold-lt); }
+    .day-tab.active .d-month { color: #90b898; }
+    .day-tab.active .d-sub   { color: #6a9b72; }
+
+    /* Тонкий разделитель */
+    .sticky-line {
+      height: 1px;
+      margin: 0 14px;
+      background: var(--border);
+      opacity: 0.6;
+    }
+
+    /* ═══ ФИЛЬТР ЛОКАЦИЙ ═══ */
+    .loc-strip {
+      display: flex;
+      gap: 6px;
+      padding: 8px 12px 10px;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .loc-strip::-webkit-scrollbar { display: none; }
     .loc-chip {
       flex: 0 0 auto;
-      padding: 5px 12px;
+      padding: 5px 11px;
       border-radius: 20px;
       font-size: 12px;
       font-weight: 600;
       cursor: pointer;
-      border: 2px solid var(--border);
+      border: 1.5px solid var(--border);
       background: white;
       color: var(--muted);
-      transition: all 0.15s;
       white-space: nowrap;
+      transition: all 0.15s;
     }
-    .loc-chip.active {
-      color: white;
-      border-color: transparent;
-    }
+    .loc-chip.active { color: white; border-color: transparent; }
 
-    /* Список событий */
-    .events-wrap {
-      padding: 12px 14px;
-    }
-
+    /* ═══ СОБЫТИЯ ═══ */
+    .events-wrap { padding: 10px 13px 20px; }
     .day-section { display: none; }
     .day-section.active { display: block; }
 
+    /* Блок одного тайм-слота */
+    .time-block { margin-bottom: 16px; }
+
+    .time-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 7px;
+    }
+    .time-val {
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--forest);
+      min-width: 44px;
+      letter-spacing: -0.2px;
+    }
+    .time-dash {
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(to right, var(--border), transparent);
+    }
+
+    /* Карточка события */
     .event-card {
       display: flex;
+      align-items: flex-start;
       gap: 10px;
-      padding: 10px 12px;
-      margin-bottom: 8px;
       background: white;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
+      border-radius: 11px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(224,207,168,0.6);
       border-left: 4px solid var(--border);
+      padding: 10px 12px 10px 11px;
+      margin-bottom: 6px;
       transition: opacity 0.2s;
     }
-    .event-card.faded { opacity: 0.25; }
+    .event-card.faded { opacity: 0.15; }
 
-    .event-time {
-      flex: 0 0 44px;
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--forest);
-      padding-top: 1px;
+    /* Объявление (Общий сбор) — компактный вид */
+    .event-card.announce {
+      background: var(--warm);
+      border: 1px solid var(--border);
+      border-left: 3px solid #d4c89a;
+      box-shadow: none;
+      padding: 6px 12px 6px 10px;
     }
-    .event-body { flex: 1; min-width: 0; }
-    .event-title {
+
+    /* Еда — чуть ярче */
+    .event-card.meal {
+      background: #fff9f5;
+    }
+
+    .ev-body { flex: 1; min-width: 0; }
+    .ev-title {
       font-size: 14px;
       font-weight: 600;
       color: var(--text);
       line-height: 1.35;
     }
-    .event-meta {
+    .announce .ev-title {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+    .ev-master {
       font-size: 12px;
       color: var(--muted);
       margin-top: 3px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .ev-master::before { content: ''; display: inline-block; width: 3px; height: 3px; border-radius: 50%; background: var(--muted); }
+
+    /* Бейдж локации */
+    .loc-badge {
+      flex-shrink: 0;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 9px;
+      border-radius: 10px;
+      color: white;
+      margin-top: 1px;
+      white-space: nowrap;
+      letter-spacing: 0.2px;
     }
 
+    /* Пустое */
     .empty {
       text-align: center;
-      padding: 50px 20px;
+      padding: 60px 20px;
+      color: var(--muted);
+    }
+    .empty .icon { font-size: 52px; margin-bottom: 14px; }
+    .empty p { font-size: 14px; line-height: 1.5; }
+
+    /* Загрузка */
+    .loading {
+      text-align: center;
+      padding: 40px 20px;
       color: var(--muted);
       font-size: 14px;
     }
-    .empty .icon { font-size: 48px; margin-bottom: 12px; }
-
-    /* Подсветка выбранной локации */
-    .loc-anchor { scroll-margin-top: 160px; }
+    .spinner {
+      width: 28px; height: 28px;
+      border: 3px solid var(--border);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 12px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
 
+<!-- Шапка -->
 <div class="header">
-  <h1>📅 Расписание</h1>
+  <span class="sun">🌞</span>
+  <h1>Расписание</h1>
   <div class="sub">Солнечный круг · 2–5 июля 2026</div>
 </div>
 
-<div class="day-tabs" id="day-tabs"></div>
-<div class="loc-filter" id="loc-filter"></div>
-<div class="events-wrap" id="events-wrap"></div>
+<!-- Дни + фильтр (sticky) -->
+<div class="sticky-top">
+  <div class="day-tabs" id="day-tabs"></div>
+  <div class="sticky-line"></div>
+  <div class="loc-strip" id="loc-strip"></div>
+  <div class="sticky-line"></div>
+</div>
+
+<!-- Контент -->
+<div class="events-wrap" id="events-wrap">
+  <div class="loading"><div class="spinner"></div>Загружаем расписание…</div>
+</div>
 
 <script>
 const tg = window.Telegram?.WebApp;
@@ -170,121 +294,119 @@ if (tg) { tg.ready(); tg.expand(); }
 
 const API_URL = 'https://solnechny-krug-bot-production.up.railway.app/api/schedule';
 
-// ═══════════════════════════════════════════════════════════════
-// НАСТРОЙКИ — заполните свои данные
-// ═══════════════════════════════════════════════════════════════
-
 const DAYS = [
-  { label: '2 июля', sub: 'чт' },
-  { label: '3 июля', sub: 'пт' },
-  { label: '4 июля', sub: 'сб ☀️' },
-  { label: '5 июля', sub: 'вс' },
+  { num: '2',  month: 'июля', sub: 'чт' },
+  { num: '3',  month: 'июля', sub: 'пт' },
+  { num: '4',  month: 'июля', sub: 'сб ☀' },
+  { num: '5',  month: 'июля', sub: 'вс' },
 ];
 
-// Локации: id, название, эмодзи, цвет полоски
 const LOCS = [
-  { id: 'kolo',     name: 'Коло',             emoji: '🎭', color: '#5ab0d1' },
-  { id: 'polyana',  name: 'Солнечная поляна',  emoji: '🌿', color: '#6bd58f' },
-  { id: 'besedka',  name: 'Лунная беседка',   emoji: '🌙', color: '#c2a36b' },
-  { id: 'steklo',   name: 'Стекляшка',        emoji: '🪟', color: '#a8b4ff' },
-  { id: 'izba',     name: 'Изба',             emoji: '🏠', color: '#ff7a6a' },
-  { id: 'detskaya',  name: 'Детская',           emoji: '👧', color: '#f9c74f' },
-  { id: 'stolovaya', name: 'Столовая',          emoji: '🍽', color: '#e07b54' },
+  { id: 'kolo',      name: 'Коло',      emoji: '🎭', color: '#5ab0d1' },
+  { id: 'polyana',   name: 'Поляна',    emoji: '🌿', color: '#6bd58f' },
+  { id: 'besedka',   name: 'Беседка',   emoji: '🌙', color: '#c2a36b' },
+  { id: 'steklo',    name: 'Стекляшка', emoji: '🪟', color: '#a8b4ff' },
+  { id: 'izba',      name: 'Изба',      emoji: '🏠', color: '#ff7a6a' },
+  { id: 'detskaya',  name: 'Детская',   emoji: '👧', color: '#f9c74f' },
+  { id: 'stolovaya', name: 'Столовая',  emoji: '🍽', color: '#e07b54' },
 ];
-
-// События
-// day: 0=2июля, 1=3июля, 2=4июля, 3=5июля
-// loc: id из LOCS выше
-// master: имя ведущего (можно оставить пустым)
-const EVENTS = [
-  // ──── 2 июля (чт) ────────────────────────────────────────────
-  { day: 0, time: '12:00', title: 'Заезд, размещение', master: '', loc: 'kolo' },
-  { day: 0, time: '17:00', title: 'Общий сбор. Открытие слёта', master: '', loc: 'kolo' },
-  { day: 0, time: '18:30', title: 'Ужин', master: '', loc: 'kolo' },
-
-  // ──── 3 июля (пт) ────────────────────────────────────────────
-  { day: 1, time: '09:00', title: 'Мастер-класс (добавьте)', master: '', loc: 'polyana' },
-  { day: 1, time: '13:00', title: 'Обед', master: '', loc: 'kolo' },
-  { day: 1, time: '20:30', title: 'Вечерняя программа', master: '', loc: 'kolo' },
-
-  // ──── 4 июля (сб, Купалье) ───────────────────────────────────
-  { day: 2, time: '09:00', title: 'Мастер-класс (добавьте)', master: '', loc: 'polyana' },
-  { day: 2, time: '13:00', title: 'Обед', master: '', loc: 'kolo' },
-  { day: 2, time: '21:00', title: '🌙 Купалье — обряд у костра', master: '', loc: 'kolo' },
-
-  // ──── 5 июля (вс) ────────────────────────────────────────────
-  { day: 3, time: '09:00', title: 'Мастер-класс (добавьте)', master: '', loc: 'polyana' },
-  { day: 3, time: '13:00', title: 'Обед', master: '', loc: 'kolo' },
-  { day: 3, time: '15:00', title: 'Закрытие слёта', master: '', loc: 'kolo' },
-  { day: 3, time: '17:00', title: 'Отъезд', master: '', loc: 'kolo' },
-];
-
-// ═══════════════════════════════════════════════════════════════
-// Логика — не менять
-// ═══════════════════════════════════════════════════════════════
-
-// URL-параметры ?loc=id&day=N для открытия из карты
-const params = new URLSearchParams(location.search);
-const urlLoc = params.get('loc') || 'all';
-const urlDay = parseInt(params.get('day') ?? '0', 10);
-
-let activeDayIdx = (urlDay >= 0 && urlDay < DAYS.length) ? urlDay : 0;
-let activeLoc = urlLoc;
-
 const locMap = Object.fromEntries(LOCS.map(l => [l.id, l]));
 
-// Рендер табов дней
+const params   = new URLSearchParams(location.search);
+const urlLoc   = params.get('loc') || 'all';
+const urlDay   = parseInt(params.get('day') ?? '0', 10);
+
+let activeDayIdx = (urlDay >= 0 && urlDay < DAYS.length) ? urlDay : 0;
+let activeLoc    = urlLoc;
+
+/* ── Табы дней ── */
 const dayTabsEl = document.getElementById('day-tabs');
 DAYS.forEach((d, i) => {
   const el = document.createElement('div');
-  el.className = 'day-tab' + (i === 0 ? ' active' : '');
-  el.innerHTML = `${d.label}<span class="sub">${d.sub}</span>`;
+  el.className = 'day-tab' + (i === activeDayIdx ? ' active' : '');
+  el.innerHTML = `<div class="d-num">${d.num}</div><div class="d-month">${d.month}</div><div class="d-sub">${d.sub}</div>`;
   el.onclick = () => setDay(i);
   dayTabsEl.appendChild(el);
 });
 
-// Рендер фильтра локаций
-const locFilterEl = document.getElementById('loc-filter');
-const allLocs = [{ id: 'all', name: 'Все', emoji: '📋', color: '#8b7bff' }, ...LOCS];
+/* ── Фильтр локаций ── */
+const locStripEl = document.getElementById('loc-strip');
+const allLocs = [{ id: 'all', name: 'Все', emoji: '📋', color: '#6b8cff' }, ...LOCS];
 allLocs.forEach(loc => {
   const el = document.createElement('div');
   el.className = 'loc-chip' + (loc.id === activeLoc ? ' active' : '');
   el.textContent = loc.emoji + ' ' + loc.name;
   if (loc.id === activeLoc) el.style.background = loc.color;
   el.onclick = () => setLoc(loc.id);
-  locFilterEl.appendChild(el);
+  locStripEl.appendChild(el);
 });
 
-// Рендер событий
+/* ── Рендер ── */
 const eventsWrapEl = document.getElementById('events-wrap');
+
+function isAnnounce(title) {
+  const t = title.toLowerCase();
+  return t.startsWith('общий сбор') || t.startsWith('объявление');
+}
+function isMeal(title) {
+  const t = title.toLowerCase().trim().replace(/[.,]/g, '');
+  return t === 'ужин' || t === 'завтрак' || t === 'обед';
+}
+
 function renderEvents(events) {
   eventsWrapEl.innerHTML = '';
-  DAYS.forEach((d, di) => {
+  DAYS.forEach((_, di) => {
     const section = document.createElement('div');
     section.className = 'day-section' + (di === activeDayIdx ? ' active' : '');
     section.id = 'day-' + di;
-    const dayEvents = events.filter(e => e.day === di);
-    if (!dayEvents.length) {
-      section.innerHTML = '<div class="empty"><div class="icon">📋</div><p>Расписание появится позже</p></div>';
+
+    const dayEvs = events
+      .filter(e => e.day === di)
+      .sort((a, b) => a.time.localeCompare(b.time));
+
+    if (!dayEvs.length) {
+      section.innerHTML = `<div class="empty"><div class="icon">📋</div><p>Расписание<br>появится позже</p></div>`;
     } else {
-      dayEvents.sort((a, b) => a.time.localeCompare(b.time));
-      dayEvents.forEach(ev => {
-        const loc = locMap[ev.loc] || { emoji: '📌', name: ev.loc, color: '#a8adcf' };
-        const card = document.createElement('div');
-        card.className = 'event-card';
-        card.style.borderLeftColor = loc.color;
-        card.dataset.loc = ev.loc;
-        card.innerHTML = `
-          <div class="event-time">${ev.time}</div>
-          <div class="event-body">
-            <div class="event-title">${ev.title}</div>
-            <div class="event-meta">${loc.emoji} ${loc.name}${ev.master ? ' · ' + ev.master : ''}</div>
-          </div>`;
-        section.appendChild(card);
-      });
+      /* Группируем по времени */
+      const byTime = new Map();
+      for (const ev of dayEvs) {
+        if (!byTime.has(ev.time)) byTime.set(ev.time, []);
+        byTime.get(ev.time).push(ev);
+      }
+
+      for (const [time, evs] of byTime) {
+        const block = document.createElement('div');
+        block.className = 'time-block';
+
+        /* Метка времени */
+        const tr = document.createElement('div');
+        tr.className = 'time-row';
+        tr.innerHTML = `<div class="time-val">${time}</div><div class="time-dash"></div>`;
+        block.appendChild(tr);
+
+        /* Карточки */
+        for (const ev of evs) {
+          const loc    = locMap[ev.loc] || { emoji: '📌', name: ev.loc, color: '#aaa' };
+          const card   = document.createElement('div');
+          const ann    = isAnnounce(ev.title);
+          const meal   = isMeal(ev.title);
+          card.className = 'event-card' + (ann ? ' announce' : meal ? ' meal' : '');
+          card.style.borderLeftColor = loc.color;
+          card.dataset.loc = ev.loc;
+
+          const badge  = ann ? '' : `<div class="loc-badge" style="background:${loc.color}">${loc.emoji}&nbsp;${loc.name}</div>`;
+          const master = ev.master ? `<div class="ev-master">${ev.master}</div>` : '';
+
+          card.innerHTML = `<div class="ev-body"><div class="ev-title">${ev.title}</div>${master}</div>${badge}`;
+          block.appendChild(card);
+        }
+
+        section.appendChild(block);
+      }
     }
     eventsWrapEl.appendChild(section);
   });
+
   applyLocFilter();
 }
 
@@ -292,6 +414,7 @@ function setDay(idx) {
   activeDayIdx = idx;
   document.querySelectorAll('.day-tab').forEach((el, i) => el.classList.toggle('active', i === idx));
   document.querySelectorAll('.day-section').forEach((el, i) => el.classList.toggle('active', i === idx));
+  window.scrollTo({ top: 0, behavior: 'smooth' });
   applyLocFilter();
 }
 
@@ -312,11 +435,7 @@ function applyLocFilter() {
   });
 }
 
-// Загружаем из API, при ошибке — статика
-renderEvents(EVENTS);
-if (activeDayIdx !== 0) setDay(activeDayIdx);
-if (urlLoc !== 'all' && locMap[urlLoc]) setLoc(urlLoc);
-
+/* ── Загрузка из API ── */
 fetch(API_URL)
   .then(r => r.json())
   .then(data => {
@@ -324,9 +443,13 @@ fetch(API_URL)
       renderEvents(data.events);
       if (activeDayIdx !== 0) setDay(activeDayIdx);
       if (urlLoc !== 'all' && locMap[urlLoc]) setLoc(urlLoc);
+    } else {
+      eventsWrapEl.innerHTML = `<div class="empty"><div class="icon">📋</div><p>Расписание<br>появится позже</p></div>`;
     }
   })
-  .catch(() => {});
+  .catch(() => {
+    eventsWrapEl.innerHTML = `<div class="empty"><div class="icon">🌿</div><p>Нет соединения.<br>Попробуйте позже.</p></div>`;
+  });
 </script>
 </body>
 </html>
