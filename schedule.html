@@ -531,7 +531,11 @@ function renderEvents(events) {
         block.appendChild(tr);
 
         /* Карточки — детская площадка всегда последней */
-        evs.sort((a, b) => (a.loc === 'detskaya') - (b.loc === 'detskaya'));
+        evs.sort((a, b) => {
+          const aLast = (a.loc === 'detskaya' || a.loc === 'banya') ? 1 : 0;
+          const bLast = (b.loc === 'detskaya' || b.loc === 'banya') ? 1 : 0;
+          return aLast - bLast;
+        });
         for (const ev of evs) {
           const loc    = locMap[ev.loc] || { emoji: '📌', name: ev.loc, color: '#aaa' };
           const card   = document.createElement('div');
