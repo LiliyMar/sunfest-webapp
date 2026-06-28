@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Ярмарка — Солнечный круг</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <script src="yarmarket_config.js"></script>
   <style>
     :root {
       --gold:    #c8922a;
@@ -426,71 +425,45 @@
 </div>
 
 <script>
-(function() {
-  var newProducts = [
-    {
-      id: 'gong',
-      name: 'Гонг',
-      description: 'Ручная работа. Два размера на выбор.',
-      image: 'img/nuts/gongs.jpg',
-      sizes: ['900 руб (малый)', '1800 руб (большой)'],
-    },
-    {
-      id: 'buben',
-      name: 'Шаманский Бубен',
-      description: 'Ручная работа. Натуральная кожа. Для ритмических и шаманских практик.',
-      price: '1800 руб',
-      image: 'img/nuts/buben.jpg',
-    },
-    {
-      id: 'chakrofon',
-      name: 'Чакрофон',
-      description: 'Ручная работа. Инструмент для звуковых практик и медитации.',
-      price: '600 руб',
-      image: 'img/nuts/chakrofon.jpg',
-    },
-    {
-      id: 'nuts-chips',
-      name: 'Орехово-фруктовые чипсы',
-      description: 'Хрустящие чипсы с орехами и сухофруктами. Есть безглютеновые.',
-      image: 'img/nuts/chips.jpg',
-      seller: 'Анастасия Пиловец · Nuts.crisps.by',
-    },
-    {
-      id: 'nuts-crisps',
-      name: 'Ржаные криспы с подсолнухом',
-      description: 'Тонкие хрустящие ржаные криспы на закваске.',
-      image: 'img/nuts/crisps.jpg',
-      seller: 'Анастасия Пиловец · Nuts.crisps.by',
-    },
-    {
-      id: 'nuts-brutti',
-      name: 'Брутти ма буони',
-      description: 'Белковое печенье с фундуком и шоколадом.',
-      image: 'img/nuts/brutti.jpg',
-      seller: 'Анастасия Пиловец · Nuts.crisps.by',
-    },
-    {
-      id: 'nuts-peanut',
-      name: 'Арахисовое печенье',
-      description: 'Нежное рассыпчатое домашнее печенье с арахисом.',
-      image: 'img/nuts/peanut.jpg',
-      seller: 'Анастасия Пиловец · Nuts.crisps.by',
-    },
-    {
-      id: 'nuts-bread',
-      name: 'Хлеб фитнес на закваске',
-      description: 'С семечками, овсянкой и морковью. Без дрожжей.',
-      image: 'img/nuts/bread.jpg',
-      seller: 'Анастасия Пиловец · Nuts.crisps.by',
-    },
-  ];
-  if (window.YARMARKET_CONFIG && window.YARMARKET_CONFIG.products) {
-    window.YARMARKET_CONFIG.products = window.YARMARKET_CONFIG.products.concat(newProducts);
-  } else {
-    window.YARMARKET_CONFIG = { products: newProducts };
-  }
-})();
+window.YARMARKET_CONFIG = { products: [
+  { id: "shirt1", name: "Футболка «Чакры» (бежевая, радуга)", price: 0, image: "yarmarket/shirt1.jpg", sizes: ["XS","S","M","L","XL","XXL"] },
+  { id: "shirt2", name: "Футболка «Древо жизни» (бежевая)", price: 0, image: "yarmarket/shirt2.jpg", sizes: ["XS","S","M","L","XL","XXL"] },
+  { id: "shirt3", name: "Футболка «Чакры» (зелёная, жёлтая)", price: 0, image: "yarmarket/shirt3.jpg", sizes: ["XS","S","M","L","XL","XXL"] },
+  { id: "shirt4", name: "Футболка «Чакры» (зелёная, радуга)", price: 0, image: "yarmarket/shirt4.jpg", sizes: ["XS","S","M","L","XL","XXL"] },
+  { id: "shirt5", name: "Футболка «Древо жизни» (зелёная)", price: 0, image: "yarmarket/shirt5.jpg", sizes: ["XS","S","M","L","XL","XXL"] },
+  { id: "book", name: "Книга Даров", price: 0, image: "yarmarket/book.jpg", sizes: [], description: "«64 ключа к твоим суперсилам» — СветЛана.\nПервый эксклюзивный тираж, только на слёте." },
+  { id: "sunshine", name: "Брызги солнца", price: 0, image: "yarmarket/sunshine.jpg", sizes: [], description: "Зеркало, кристаллы, стекло.\nНатали — Breeze of Dream" },
+  { id: "choker", name: "Чокер + серьги асимметрия", price: 0, image: "yarmarket/choker.jpg", sizes: [], description: "Натуральная замша, агаты.\nНатали — Breeze of Dream" },
+  { id: "dreamcatcher3", name: "Ловец снов-талисман", price: 0, image: "yarmarket/dreamcatcher3.jpg", sizes: [], description: "Натуральная кожа, натуральные камни, джут, фликер.\nНатали — Breeze of Dream" },
+  { id: "dreamcatcher2", name: "Ловец снов с музыкой ветра", price: 0, image: "yarmarket/dreamcatcher2.jpg", sizes: [], description: "Бамбук, пряжа, шерл.\nНатали — Breeze of Dream" },
+  { id: "dreamcatcher", name: "Ловец снов «Древо»", price: 0, image: "yarmarket/dreamcatcher.jpg", sizes: [], description: "Лоза, рудракша, перо орла, джут.\nНатали — Breeze of Dream" },
+  { id: "dress", name: "Платье Этника", price: 230, image: "yarmarket/dress.jpg", sizes: ["XS","S","M","L","XL","XXL"], description: "Свободное этническое платье оверсайз из хлопка и льна с разрезами.\nДизайнер «TURIYA» — Наима" },
+  { id: "kimono", name: "Кимоно Рассвет", price: 280, image: "yarmarket/kimono.jpg", sizes: ["XS","S","M","L","XL","XXL"], description: "Элегантное персиковое кимоно из крапивы с поясом и боковыми разрезами.\nДизайнер «TURIYA» — Наима" },
+  { id: "pendant", name: "Кулон-талисман «Купала»", price: 0, image: "yarmarket/pendant.jpg", sizes: [], description: "Талисман со славянской тематикой в единственном экземпляре — позволит вам надолго запомнить праздник Купалы.\nВероника Сушицкая" },
+  { id: "tea", name: "Витаминный чай лесной", price: 0, image: "yarmarket/tea.jpg", sizes: [], description: "Ароматный лесной сбор: земляника, малина, черника, смородина, сосновые пыльники, шиповник.\nТатьяна Кузнецова" },
+  { id: "oils", name: "Масла холодного отжима", price: 0, image: "yarmarket/oils.jpg", sizes: [], description: "В ассортименте: конопляное, тыквенное, кунжутное, горчичное, льняное, подсолнечное, миндальное, из абрикосовой косточки и другие.\nТатьяна Кузнецова" },
+  { id: "urbech", name: "Урбеч — натуральная паста из семян", price: 0, image: "yarmarket/urbech.jpg", sizes: [], description: "Полезная натуральная паста из семян. Уникальный авторский состав: кунжут–кокос–кэроб и другие.\nТатьяна Кузнецова" },
+  { id: "mustard", name: "Горчичный порошок 🔥", price: 0, image: "yarmarket/mustard.jpg", sizes: [], description: "Очень качественный горчичный порошок — можно сделать звёздную 🌟 горчицу, помыть посуду, добавлять в майонезы и соусы.\nТатьяна Кузнецова" },
+  { id: "herbs", name: "Витаминный сбор Здоровье 🍀", price: 0, image: "yarmarket/herbs.jpg", sizes: [], description: "Добавка к питанию от природы, жмых из 8-ми полезных трав, сухой салат — можно развести в воде и выпить, добавить в коктейли.\nТатьяна Кузнецова" },
+  { id: "pendant2", name: "Кулон-талисман «Купала» №2", price: 0, image: "yarmarket/pendant2.jpg", sizes: [], description: "Талисман со славянской тематикой в единственном экземпляре — позволит вам надолго запомнить праздник Купалы.\nВероника Сушицкая" },
+  { id: "pendant3", name: "Кулон-талисман «Купала» №3", price: 0, image: "yarmarket/pendant3.jpg", sizes: [], description: "Талисман со славянской тематикой в единственном экземпляре — позволит вам надолго запомнить праздник Купалы.\nВероника Сушицкая" },
+  { id: "pendant4", name: "Кулон-талисман «Купала» №4", price: 0, image: "yarmarket/pendant4.jpg", sizes: [], description: "Талисман со славянской тематикой в единственном экземпляре — позволит вам надолго запомнить праздник Купалы.\nВероника Сушицкая" },
+  { id: "pendant5", name: "Кулон-талисман «Купала» №5", price: 0, image: "yarmarket/pendant5.jpg", sizes: [], description: "Талисман со славянской тематикой в единственном экземпляре — позволит вам надолго запомнить праздник Купалы.\nВероника Сушицкая" },
+  { id: "dress2", name: "Платье Ясновижу", price: 380, image: "yarmarket/dress2.jpg", sizes: ["XS","S","M","L","XL","XXL"], description: "из крапивы с обережной вышивкой для ясного видения.\nДизайнер «TURIYA» — Наима" },
+  { id: "earrings_buton", name: "Серьги «Бутон»", price: 0, image: "yarmarket/earrings_buton.jpg", sizes: [] },
+  { id: "earrings_muhomor", name: "Серьги «Мухоморы»", price: 0, image: "yarmarket/earrings_muhomor.jpg", sizes: [] },
+  { id: "plate_cvetok", name: "Тарелочка «Цветок»", price: 0, image: "yarmarket/plate_cvetok.jpg", sizes: [] },
+  { id: "incense_med", name: "Подставка под благовония «Мёд»", price: 0, image: "yarmarket/incense_med.jpg", sizes: [] },
+  { id: "piala_life", name: "Пиала «Цветок жизни»", price: 0, image: "yarmarket/piala_life.jpg", sizes: [] },
+  { id: "gong", name: "Гонг", description: "Ручная работа. Два размера на выбор.", image: "img/nuts/gongs.jpg", sizes: ["900 руб (малый)", "1800 руб (большой)"] },
+  { id: "buben", name: "Шаманский Бубен", description: "Ручная работа. Натуральная кожа. Для ритмических и шаманских практик.", price: "1800 руб", image: "img/nuts/buben.jpg" },
+  { id: "chakrofon", name: "Чакрофон", description: "Ручная работа. Инструмент для звуковых практик и медитации.", price: "600 руб", image: "img/nuts/chakrofon.jpg" },
+  { id: "nuts-chips", name: "Орехово-фруктовые чипсы", description: "Хрустящие чипсы с орехами и сухофруктами. Есть безглютеновые.", image: "img/nuts/chips.jpg", seller: "Анастасия Пиловец · Nuts.crisps.by" },
+  { id: "nuts-crisps", name: "Ржаные криспы с подсолнухом", description: "Тонкие хрустящие ржаные криспы на закваске.", image: "img/nuts/crisps.jpg", seller: "Анастасия Пиловец · Nuts.crisps.by" },
+  { id: "nuts-brutti", name: "Брутти ма буони", description: "Белковое печенье с фундуком и шоколадом.", image: "img/nuts/brutti.jpg", seller: "Анастасия Пиловец · Nuts.crisps.by" },
+  { id: "nuts-peanut", name: "Арахисовое печенье", description: "Нежное рассыпчатое домашнее печенье с арахисом.", image: "img/nuts/peanut.jpg", seller: "Анастасия Пиловец · Nuts.crisps.by" },
+  { id: "nuts-bread", name: "Хлеб фитнес на закваске", description: "С семечками, овсянкой и морковью. Без дрожжей.", image: "img/nuts/bread.jpg", seller: "Анастасия Пиловец · Nuts.crisps.by" },
+]};
 </script>
 
 <script>
