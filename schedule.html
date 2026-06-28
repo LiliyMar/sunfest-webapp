@@ -527,7 +527,8 @@ function renderEvents(events) {
         tr.innerHTML = `<div class="time-val">${time}</div><div class="time-dash"></div>`;
         block.appendChild(tr);
 
-        /* Карточки */
+        /* Карточки — детская площадка всегда последней */
+        evs.sort((a, b) => (a.loc === 'detskaya') - (b.loc === 'detskaya'));
         for (const ev of evs) {
           const loc    = locMap[ev.loc] || { emoji: '📌', name: ev.loc, color: '#aaa' };
           const card   = document.createElement('div');
