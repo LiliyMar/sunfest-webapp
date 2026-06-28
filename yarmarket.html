@@ -359,7 +359,7 @@
 <!-- КАТАЛОГ -->
 <div id="page-catalog">
   <div class="header">
-    <a class="back-btn" href="map.html" title="На карту">←</a>
+    <a class="back-btn" href="#" onclick="event.preventDefault(); history.length > 1 ? history.back() : (window.Telegram?.WebApp?.close ? window.Telegram.WebApp.close() : window.location.href='map.html')" title="Назад">←</a>
     <h1>🛍 Ярмарка</h1>
     <div class="sub">Предзаказ товаров к фестивалю</div>
   </div>

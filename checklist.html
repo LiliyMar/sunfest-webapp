@@ -179,7 +179,7 @@
 <body>
 
 <div class="header">
-  <a class="back-btn" href="map.html" title="На карту">←</a>
+  <a class="back-btn" href="#" onclick="event.preventDefault(); history.length > 1 ? history.back() : (window.Telegram?.WebApp?.close ? window.Telegram.WebApp.close() : window.location.href='map.html')" title="Назад">←</a>
   <span class="icon">🎒</span>
   <h1>Что взять с собой</h1>
   <div class="sub">Солнечный круг · 2–5 июля 2026</div>
