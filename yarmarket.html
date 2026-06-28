@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Ярмарка — Солнечный круг</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script src="yarmarket_config.js"></script>
   <style>
     :root {
       --gold:    #c8922a;
@@ -425,8 +426,8 @@
 </div>
 
 <script>
-window.YARMARKET_CONFIG = {
-  products: [
+(function() {
+  var newProducts = [
     {
       id: 'gong',
       name: 'Гонг',
@@ -483,8 +484,13 @@ window.YARMARKET_CONFIG = {
       image: 'img/nuts/bread.jpg',
       seller: 'Анастасия Пиловец · Nuts.crisps.by',
     },
-  ]
-};
+  ];
+  if (window.YARMARKET_CONFIG && window.YARMARKET_CONFIG.products) {
+    window.YARMARKET_CONFIG.products = window.YARMARKET_CONFIG.products.concat(newProducts);
+  } else {
+    window.YARMARKET_CONFIG = { products: newProducts };
+  }
+})();
 </script>
 
 <script>
