@@ -545,8 +545,9 @@ function renderEvents(events) {
           const master = ev.master ? `<div class="ev-master">${ev.master}</div>` : '';
 
           const hasMaster = !ann && ev.master && mastersMap[ev.master];
+          const esc = s => (s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;');
           const titleHtml = hasMaster
-            ? `<span class="ev-title has-master" onclick="showMasterModal(${JSON.stringify(ev.master)},${JSON.stringify(ev.title)})">${ev.title}</span>`
+            ? `<span class="ev-title has-master" data-master="${esc(ev.master)}" data-title="${esc(ev.title)}">${ev.title}</span>`
             : `<div class="ev-title">${ev.title}</div>`;
 
           card.innerHTML = `<div class="ev-body">${titleHtml}${master}</div>${badge}`;
@@ -620,6 +621,12 @@ function closeMasterModal(e) {
   document.getElementById('modal-overlay').classList.remove('open');
   document.body.style.overflow = '';
 }
+
+document.addEventListener('click', function(e) {
+  const el = e.target.closest('.has-master');
+  if (!el) return;
+  showMasterModal(el.dataset.master, el.dataset.title);
+});
 
 /* ── Загрузка из API ── */
 Promise.all([
