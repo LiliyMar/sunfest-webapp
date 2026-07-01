@@ -229,5 +229,13 @@ var YARMARKET_CONFIG = {
       image: "yarmarket/piala_life.jpg",
       sizes: [],
     },
+    {
+      id: "gidrolat",
+      name: "Гидролаты от ароматерапевта",
+      price: 0,
+      image: "yarmarket/gidrolat.jpg",
+      description: "Анастасия Декевич @anastasia.dekevich",
+      sizes: [],
+    },
   ],
 };
