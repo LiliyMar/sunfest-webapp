@@ -252,5 +252,12 @@ var YARMARKET_CONFIG = {
       image: "yarmarket/shampoo.jpg",
       sizes: [],
     },
+    {
+      id: "face_cream",
+      name: "Заживляющий крем для лица",
+      price: 0,
+      image: "yarmarket/face_cream.jpg",
+      sizes: [],
+    },
   ],
 };
