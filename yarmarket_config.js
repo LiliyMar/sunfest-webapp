@@ -245,5 +245,12 @@ var YARMARKET_CONFIG = {
       description: "Анастасия Декевич @anastasia.dekevich",
       sizes: [],
     },
+    {
+      id: "shampoo",
+      name: "Твердый шампунь для волос",
+      price: 0,
+      image: "yarmarket/shampoo.jpg",
+      sizes: [],
+    },
   ],
 };
