@@ -259,5 +259,12 @@ var YARMARKET_CONFIG = {
       image: "yarmarket/face_cream.jpg",
       sizes: [],
     },
+    {
+      id: "pain_gel",
+      name: "Обезболивающий гель с эфирными маслами",
+      price: 0,
+      image: "yarmarket/pain_gel.jpg",
+      sizes: [],
+    },
   ],
 };
