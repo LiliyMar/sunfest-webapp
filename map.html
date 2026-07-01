@@ -332,19 +332,31 @@ function redrawDot() {
 
 function centerOnMe() {
   if (lastLat === null) {
-    // координат ещё нет — пробуем запросить доступ (и открыть настройки, если отказано)
+    // Нет координат — пробуем получить принудительно
     if (useLM && lmReady) {
+      showStatus('📍 Запрашиваем геолокацию…', false);
       lm.getLocation(loc => {
         if (loc) {
           onPosition(loc.latitude, loc.longitude, loc.horizontal_accuracy);
           centerOnMe();
-        } else if (lm.openSettings) {
-          showStatus('🔒 Разрешите доступ к геолокации в настройках', false);
-          try { lm.openSettings(); } catch (e) {}
+        } else {
+          // Открываем настройки Telegram для выдачи разрешения
+          showStatus('🔒 Разрешите геолокацию в настройках Telegram', false);
+          try { if (lm.openSettings) lm.openSettings(); } catch (e) {}
+          // И пробуем браузерный запрос параллельно
+          startBrowserGeo();
         }
       });
     } else {
-      showStatus('⏳ Геолокация ещё не готова…', true);
+      // Только браузерная геолокация
+      showStatus('📍 Запрашиваем геолокацию…', false);
+      startBrowserGeo();
+      // Если разрешение уже отклонено — попробовать openSettings через 1 с
+      setTimeout(() => {
+        if (lastLat === null && useLM && lm && lm.openSettings) {
+          try { lm.openSettings(); } catch (e) {}
+        }
+      }, 1000);
     }
     return;
   }
@@ -441,11 +453,9 @@ function showStatus(text, autohide) {
 }
 
 // ── Геолокация ─────────────────────────────────────────────────────
-// Внутри Telegram Mini App обычный navigator.geolocation не работает
-// (особенно на iOS) — используем Telegram LocationManager (Bot API 8.0+),
-// а как запасной вариант (внешний браузер / Android) — navigator.geolocation.
 const lm = tg && tg.LocationManager;
 let useLM = false, lmReady = false, accessDenied = false;
+let geoStarted = false;  // браузерный watchPosition запущен
 
 function onPosition(lat, lng, acc) {
   lastLat = lat; lastLng = lng;
@@ -455,24 +465,26 @@ function onPosition(lat, lng, acc) {
   showStatus('📍 Точность: ±' + lastAcc + ' м', true);
 }
 
-// — Запасной вариант: браузерная геолокация —
+// — Браузерная геолокация (фолбэк и параллельный запрос) —
 function startBrowserGeo() {
-  if (!navigator.geolocation) {
-    showStatus('⚠️ Геолокация не поддерживается этим устройством', false);
-    return;
-  }
-  showStatus('📍 Определяем местоположение…', false);
+  if (geoStarted || !navigator.geolocation) return;
+  geoStarted = true;
   navigator.geolocation.watchPosition(
     pos => onPosition(pos.coords.latitude, pos.coords.longitude, pos.coords.accuracy),
     err => {
-      const m = {1:'🔒 Нет доступа к геолокации', 2:'⚠️ Геолокация недоступна', 3:'⏱ Таймаут — попробуйте ещё раз'};
+      if (lastLat !== null) return;  // уже есть координаты от LM — не перебиваем
+      const m = {
+        1: '🔒 Нет доступа к геолокации. Разрешите в настройках Telegram или телефона',
+        2: '⚠️ Геолокация недоступна на этом устройстве',
+        3: '⏱ Таймаут геолокации — нажмите 📍 ещё раз'
+      };
       showStatus(m[err.code] || '⚠️ Ошибка геолокации', false);
     },
-    { enableHighAccuracy: true, maximumAge: 3000, timeout: 15000 }
+    { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 }
   );
 }
 
-// — Основной вариант: Telegram LocationManager (живая точка, опрос каждые 4 с) —
+// — Telegram LocationManager: опрос каждые 4 с —
 function lmPoll() {
   if (!lmReady) return;
   lm.getLocation(loc => {
@@ -480,24 +492,32 @@ function lmPoll() {
       onPosition(loc.latitude, loc.longitude, loc.horizontal_accuracy);
     } else if (!accessDenied) {
       accessDenied = true;
-      showStatus('🔒 Нет доступа к геолокации. Нажмите 📍, чтобы разрешить', false);
+      showStatus('🔒 Нет доступа к геолокации — нажмите 📍', false);
+      // Параллельно пробуем браузерный fallback (работает на части устройств)
+      startBrowserGeo();
     }
     setTimeout(lmPoll, 4000);
   });
 }
 
+// — Инициализация —
+showStatus('📍 Определяем местоположение…', false);
+
 if (lm) {
-  showStatus('📍 Определяем местоположение…', false);
   lm.init(() => {
     if (lm.isLocationAvailable) {
       useLM = true; lmReady = true;
       lmPoll();
     } else {
-      startBrowserGeo();   // LocationManager есть, но недоступен на устройстве
+      // LocationManager недоступен — пробуем браузер
+      startBrowserGeo();
     }
   });
+  // Если lm.init не вызвал callback за 3 с — пробуем браузер параллельно
+  setTimeout(() => { if (!lmReady && !geoStarted) startBrowserGeo(); }, 3000);
 } else {
-  startBrowserGeo();       // старый Telegram или внешний браузер
+  // Старый Telegram или внешний браузер
+  startBrowserGeo();
 }
 
 // ── Локации на карте ──────────────────────────────────────────────
