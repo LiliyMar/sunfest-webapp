@@ -237,5 +237,13 @@ var YARMARKET_CONFIG = {
       description: "Анастасия Декевич @anastasia.dekevich",
       sizes: [],
     },
+    {
+      id: "aromaroller",
+      name: "Аромароллер с эфирным маслом на выбор",
+      price: 0,
+      image: "yarmarket/aromaroller.jpg",
+      description: "Анастасия Декевич @anastasia.dekevich",
+      sizes: [],
+    },
   ],
 };
