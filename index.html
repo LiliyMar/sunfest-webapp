@@ -428,8 +428,8 @@
       <div class="opt-check">✓</div>
     </div>
     <div class="option-card" data-val="master" onclick="pick('role',this)">
-      <div class="opt-icon">🎓</div>
-      <div class="opt-body"><div class="opt-title">Мастер</div><div class="opt-sub">Мастер-класс согласован с организаторами</div></div>
+      <div class="opt-icon">🛍</div>
+      <div class="opt-body"><div class="opt-title">Ярмарка</div><div class="opt-sub">Участвую в ярмарке мастеров</div></div>
       <div class="opt-check">✓</div>
     </div>
     <div class="option-card" data-val="artist" onclick="pick('role',this)">
@@ -1612,11 +1612,7 @@ function buildSummary() {
   po.innerHTML = '';
 
   if (S.role==='master') {
-    po.innerHTML = `
-      <div style="font-size:16px;font-weight:600;margin-bottom:14px;color:#1e3320;text-align:center">Ваш мастер-класс согласован?</div>
-      <button class="pay-btn pay-online" onclick="masterApproved(true)">✅ Да, согласован</button>
-      <button class="pay-btn pay-onsite" onclick="masterApproved(false)">⏳ Нет, ещё нет</button>
-    `;
+    masterApproved(true);
     return;
   } else if (S.role!=='volunteer' && S.role!=='artist' && tot>0) {
     const priceTag = hasStrike ? `<s style="opacity:0.5">${noDisc}</s> ${tot}` : tot;
